@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -12,7 +14,7 @@ namespace MEDIA_PLAYER
     {
         private bool mediaPlayerIsPlaying = false;
         private bool userIsDraggingSlider = false;
-
+        private string _currentPlaying = string.Empty;
         public MainWindow()
         {
             InitializeComponent();
@@ -22,7 +24,15 @@ namespace MEDIA_PLAYER
             timer.Tick += timer_Tick;
             timer.Start();
         }
-
+         private string _shortName
+        {
+            get
+            {
+                var info = new FileInfo(_currentPlaying);
+                var name = info.Name;
+                return name;
+            }
+        }
         private void timer_Tick(object sender, EventArgs e)
         {
             if ((mePlayer.Source != null) && (mePlayer.NaturalDuration.HasTimeSpan) && (!userIsDraggingSlider))
@@ -42,8 +52,13 @@ namespace MEDIA_PLAYER
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Media files (*.mp3;*.mpg;*.mpeg)|*.mp3;*.mpg;*.mpeg|All files (*.*)|*.*";
+
             if (openFileDialog.ShowDialog() == true)
-                mePlayer.Source = new Uri(openFileDialog.FileName, UriKind.Absolute);
+            {
+                _currentPlaying = openFileDialog.FileName;
+                mePlayer.Source = new Uri(_currentPlaying, UriKind.Absolute);
+               
+            }
         }
 
         private void Play_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -87,6 +102,9 @@ namespace MEDIA_PLAYER
         {
             userIsDraggingSlider = false;
             mePlayer.Position = TimeSpan.FromSeconds(sliProgress.Value);
+            Debug.WriteLine(sliProgress.Value);
+            Debug.WriteLine(mePlayer.Position.ToString());
+
         }
 
         private void sliProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -99,5 +117,17 @@ namespace MEDIA_PLAYER
             mePlayer.Volume += (e.Delta > 0) ? 0.1 : -0.1;
         }
 
+        private void player_MediaOpened(object sender, RoutedEventArgs e)
+        {
+            if ((mePlayer.NaturalDuration.HasTimeSpan))
+            {
+                lblProgressStatusEnd.Text = TimeSpan.FromSeconds(mePlayer.NaturalDuration.TimeSpan.TotalSeconds).ToString(@"hh\:mm\:ss");
+            }
+        }
+
+        private void player_MediaEnded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

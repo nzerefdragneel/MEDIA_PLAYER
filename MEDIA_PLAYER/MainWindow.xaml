@@ -20,73 +20,105 @@
         <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
     </Window.CommandBindings>
-    <Grid MouseWheel="Grid_MouseWheel">
+    <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="30"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <ToolBar>
 
-            <Button
+        <DockPanel Grid.Row="1">
+            <StackPanel x:Name="PlayListStackPannel" Width="280" DockPanel.Dock="Right" Visibility="Visible">
+
+            </StackPanel>
+
+            <Grid MouseWheel="Grid_MouseWheel">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30" />
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="30"></RowDefinition>
+                </Grid.RowDefinitions>
+                <ToolBar>
+
+                    <Button
                   Command="ApplicationCommands.Open" 
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                   ToolTip="MaterialDesignIconButton">
-                <materialDesign:PackIcon
-                    Kind="OpenInBrowser" />
-            </Button>
-            <Button
+                        <materialDesign:PackIcon
+                    Kind="FolderOpen" />
+                    </Button>
+                   
+                    <!-- <Separator /> -->
+                </ToolBar>
+                <MediaElement Name="mePlayer" MediaOpened="player_MediaOpened" MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
+
+                </MediaElement>
+
+                <StatusBar Grid.Row="2">
+                    <StatusBar.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                            </Grid>
+                        </ItemsPanelTemplate>
+                    </StatusBar.ItemsPanel>
+                    <StatusBarItem>
+                        <TextBlock Name="lblProgressStatus">00:00:00</TextBlock>
+                    </StatusBarItem>
+                    <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Stretch" RenderTransformOrigin="0.3,0.1">
+                      
+                        <Slider x:Name="sliProgress" Grid.Row="2"
+                            Minimum="0"   Thumb.DragStarted="sliProgress_DragStarted"  Thumb.DragCompleted="sliProgress_DragCompleted"
+                            Value="0" ValueChanged="sliProgress_ValueChanged"  >
+                            <Slider.LayoutTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleY="0.5" ScaleX="0.5"/>
+                                </TransformGroup>
+                            </Slider.LayoutTransform>
+                        </Slider>
+                    </StatusBarItem>
+                    <StatusBarItem Grid.Column="2">
+                        <TextBlock Name="lblProgressStatusEnd">00:00:00</TextBlock>
+                    </StatusBarItem>
+
+                </StatusBar>
+                <StatusBar Grid.Row="3">
+                 <Button
                   Command="MediaCommands.Play" 
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
-                  ToolTip="MaterialDesignIconButton">
-                <materialDesign:PackIcon
+                  ToolTip="Click to start media" Height="30">
+                        <materialDesign:PackIcon
                     Kind="Play" />
-            </Button>
+                    </Button>
+                    <Button
+                  Command="MediaCommands.Stop" Height="30"
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}"
+                  ToolTip="Click to stop media">
+                        <materialDesign:PackIcon
+                    Kind="Stop" />
+                    </Button>
+                    <Button
+                  Command="MediaCommands.Pause" Height="30"
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}"
+                  ToolTip="Click to pause media">
+                        <materialDesign:PackIcon
+                    Kind="Pause" />
+                    </Button>
+                    <StatusBarItem Grid.Column="2">
+                        <ProgressBar Name="pbVolume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=mePlayer, Path=Volume}" />
+                    </StatusBarItem>
+                </StatusBar>
 
-            
+            </Grid>
 
-
-            <!-- <Separator />
-               <Image Source="images\folder.png" />
-                <Button Command="MediaCommands.Play" Height="30" Width="30">
-                <Image Source="images/play.png" />
-            </Button>
-            <Button Command="MediaCommands.Pause" Height="30" Width="30"> 
-                <Image Source="images/pause.png" />
-            </Button>
-            <Button Command="MediaCommands.Stop" Height="30" Width="30">
-                <Image Source="images/stop-button.png" />
-            </Button>-->
-        </ToolBar>
-        <MediaElement Name="mePlayer"  LoadedBehavior="Manual" Stretch="None" Margin="0,0,0,24" />
-
-        <StatusBar Grid.Row="2">
-            <StatusBar.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                    </Grid>
-                </ItemsPanelTemplate>
-            </StatusBar.ItemsPanel>
-            <StatusBarItem>
-                <TextBlock Name="lblProgressStatus">00:00:00</TextBlock>
-            </StatusBarItem>
-            <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Stretch">
-                <Slider x:Name="sliProgress"
-              Maximum="50"
-              Minimum="0"
-              Value="0" ValueChanged="sliProgress_ValueChanged" />  
-            </StatusBarItem>
-            
-            <StatusBarItem Grid.Column="2">
-                <ProgressBar Name="pbVolume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=mePlayer, Path=Volume}" />
-            </StatusBarItem>
-        </StatusBar>
+        </DockPanel>
     </Grid>
 </Window>
