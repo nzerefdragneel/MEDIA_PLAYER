@@ -7,21 +7,10 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Windows.Controls;
-using System.Windows.Forms;
-using System.Xml.Linq;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
-using ProgressBar = System.Windows.Controls.ProgressBar;
-using System.ComponentModel;
 using System.Collections.ObjectModel;
-using System.Numerics;
 using MessageBox = System.Windows.Forms.MessageBox;
-using System.Security.AccessControl;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-using System.Windows.Shapes;
-using Microsoft.Win32;
 using Path = System.IO.Path;
-using Microsoft.VisualBasic.Devices;
 using System.Linq;
 
 namespace MEDIA_PLAYER
@@ -167,6 +156,7 @@ namespace MEDIA_PLAYER
         }
         private void add_Audio_image(string path)
         {
+            _add = new Media();
             var bitmap = new BitmapImage(new Uri("images/play.png", UriKind.Relative));
             _add.imageReview = bitmap;
             MediaPlayer mediaPlayer = new MediaPlayer();
@@ -177,9 +167,11 @@ namespace MEDIA_PLAYER
             _add.NowDuration = "00:00:00";
             _add.File_Path = path;
             _mediaList.Add(_add);
+
         }
         private void add_Video_Image(string sFullname_Path_of_Video)
         {
+            _add = new Media();
             //----------------< add_Video_Image() >----------------
             //*create mediaplayer in memory and jump to position
             Debug.WriteLine(sFullname_Path_of_Video);
@@ -194,7 +186,7 @@ namespace MEDIA_PLAYER
 
             mediaPlayer.Play();
             mediaPlayer.Stop();
-            mediaPlayer.Position = TimeSpan.FromSeconds(0.1);
+           mediaPlayer.Position = TimeSpan.FromSeconds(0.5);
             _add.File_Path=sFullname_Path_of_Video;
             DrawingVisual drawingVisual = new DrawingVisual();
             DrawingContext drawingContext = drawingVisual.RenderOpen();
@@ -214,7 +206,7 @@ namespace MEDIA_PLAYER
                 _add.NowDuration = "00:00:00";
             }
             _mediaList.Add(_add);
-            _add = new Media();
+            
 
             //----------------</ add_Video_Image() >----------------
         }
@@ -262,6 +254,8 @@ namespace MEDIA_PLAYER
         private void sliProgress_DragStarted(object sender, DragStartedEventArgs e)
         {
             userIsDraggingSlider = true;
+            CanvasSeeking.Visibility = Visibility.Visible;
+            textSeeking.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
         }
 
         private void sliProgress_DragCompleted(object sender, DragCompletedEventArgs e)
@@ -270,14 +264,13 @@ namespace MEDIA_PLAYER
             mePlayer.Position = TimeSpan.FromSeconds(sliProgress.Value);
             Debug.WriteLine(sliProgress.Value);
             Debug.WriteLine(mePlayer.Position.ToString());
-
+            CanvasSeeking.Visibility = Visibility.Collapsed;
         }
 
         private void sliProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
         }
-
         private void Grid_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             mePlayer.Volume += (e.Delta > 0) ? 0.1 : -0.1;
@@ -369,6 +362,20 @@ namespace MEDIA_PLAYER
         private void DeleteThis(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void HiddenBtn(object sender, RoutedEventArgs e)
+        {
+            if (PlayListStackPannel.Visibility == Visibility.Visible)
+            {
+                PlayListStackPannel.Visibility = Visibility.Collapsed;
+                HiddenButton.Content = "Show";    
+            }
+            else
+            {
+                PlayListStackPannel.Visibility = Visibility.Visible;
+                HiddenButton.Content = "Hide";
+            }
         }
     }
 }
