@@ -13,14 +13,17 @@
          TextOptions.TextRenderingMode="Auto"
          Background="{DynamicResource MaterialDesignPaper}"
          FontFamily="{DynamicResource MaterialDesignFont}"
-            Title="MainWindow" Height="600" Width="800">
+            Title="MainWindow" Height="600" Width="800"
+        Loaded="Window_Loaded"
+        >
+        
     <Window.CommandBindings>
         <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
         <CommandBinding Command="MediaCommands.Play" CanExecute="Play_CanExecute" Executed="Play_Executed" />
         <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
     </Window.CommandBindings>
-    <Grid>
+    <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
@@ -28,9 +31,41 @@
 
         <DockPanel Grid.Row="1">
             <StackPanel x:Name="PlayListStackPannel" Width="280" DockPanel.Dock="Right" Visibility="Visible">
+                <ListView x:Name="PlayListView">
+                    <!-- and here's another -->
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Mouse.MouseDown="ChooseToPlay">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"></ColumnDefinition>
+                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source="{Binding imageReview}" Height="100" Width="150"></Image>
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center">
 
+                                        <TextBlock TextWrapping="Wrap"
+                              Style="{StaticResource MaterialDesignButtonTextBlock}"
+                              Text="{Binding Description}" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock
+                              Style="{StaticResource MaterialDesignOverlineTextBlock}"
+                              Text="{Binding NowDuration}" />
+                                            <TextBlock
+                              Style="{StaticResource MaterialDesignOverlineTextBlock}"
+                              Text="{Binding DurationString}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Grid>
+
+
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+               
             </StackPanel>
-
+            
             <Grid MouseWheel="Grid_MouseWheel">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30" />
@@ -48,13 +83,19 @@
                         <materialDesign:PackIcon
                     Kind="FolderOpen" />
                     </Button>
-                   
+               
                     <!-- <Separator /> -->
                 </ToolBar>
+                <ProgressBar Grid.Row="1" Visibility="Collapsed" x:Name="progressbarLoadmedia"
+                          IsIndeterminate="True"
+                          Style="{StaticResource MaterialDesignCircularProgressBar}"
+                Value="35" />
+                <StackPanel Grid.Row="1" Name="StackpannelMedia">
                 <MediaElement Name="mePlayer" MediaOpened="player_MediaOpened" MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
-
+                       
                 </MediaElement>
-
+               
+                </StackPanel>
                 <StatusBar Grid.Row="2">
                     <StatusBar.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -87,7 +128,7 @@
                     </StatusBarItem>
 
                 </StatusBar>
-                <StatusBar Grid.Row="3">
+                <StatusBar Grid.Row="3" >
                  <Button
                   Command="MediaCommands.Play" 
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
