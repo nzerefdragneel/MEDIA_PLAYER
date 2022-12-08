@@ -17,6 +17,12 @@ using System.Collections.ObjectModel;
 using System.Numerics;
 using MessageBox = System.Windows.Forms.MessageBox;
 using System.Security.AccessControl;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
+using System.Windows.Shapes;
+using Microsoft.Win32;
+using Path = System.IO.Path;
+using Microsoft.VisualBasic.Devices;
+using System.Linq;
 
 namespace MEDIA_PLAYER
 {
@@ -120,10 +126,7 @@ namespace MEDIA_PLAYER
             //----------------< mediaplayer_OpenMedia() >----------------
             //*create mediaplayer in memory and jump to position
             //< draw video_image >
-            ProgressBar progressLoad = new ProgressBar();
-            progressLoad.Height = 30;
-            progressLoad.Width = 50;
-            PlayListStackPannel.Children.Add(progressLoad);
+            
             MediaPlayer mediaPlayer = sender as MediaPlayer;
           
                 DrawingVisual drawingVisual = new DrawingVisual();
@@ -137,6 +140,7 @@ namespace MEDIA_PLAYER
                 _add.imageReview = bmp;
                 /*
                 MemoryStream stream = new MemoryStream();
+
                 BitmapEncoder encoder = new BmpBitmapEncoder();
                 encoder.Frames.Add(BitmapFrame.Create(bmp));
                 encoder.Save(stream);
@@ -158,17 +162,7 @@ namespace MEDIA_PLAYER
             
 
             
-            while (!mediaPlayer.NaturalDuration.HasTimeSpan) ;
-            if (mediaPlayer.NaturalDuration.HasTimeSpan)
-            {
-                var time= TimeSpan.FromSeconds(mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds);
-                _add.DurationString = time.ToString(@"hh\:mm\:ss");
-                Debug.WriteLine("string",_add.DurationString);
-                _add.NowDuration = "00:00:00";
-            }
-            _mediaList.Add(_add);
-            PlayListStackPannel.Children.Remove(progressLoad);
-            _add = new Media();
+           
             //----------------< mediaplayer_OpenMedia() >----------------
         }
         private void add_Audio_image(string path)
@@ -188,21 +182,40 @@ namespace MEDIA_PLAYER
         {
             //----------------< add_Video_Image() >----------------
             //*create mediaplayer in memory and jump to position
+            Debug.WriteLine(sFullname_Path_of_Video);
             MediaPlayer mediaPlayer = new MediaPlayer();
-            mediaPlayer.MediaOpened += new EventHandler(mediaplayer_OpenMedia);
+           // mediaPlayer.MediaOpened += new EventHandler(mediaplayer_OpenMedia);
             mediaPlayer.MediaFailed += (o, args) =>
             {
                 MessageBox.Show("Media Failed!!");
             };
             mediaPlayer.ScrubbingEnabled = true;
             mediaPlayer.Open(new Uri(sFullname_Path_of_Video));
-            // mediaPlayer.Position = TimeSpan.FromSeconds(0);
-            if (IsAudioFile(sFullname_Path_of_Video))
+
+            mediaPlayer.Play();
+            mediaPlayer.Stop();
+            mediaPlayer.Position = TimeSpan.FromSeconds(0.1);
+            _add.File_Path=sFullname_Path_of_Video;
+            DrawingVisual drawingVisual = new DrawingVisual();
+            DrawingContext drawingContext = drawingVisual.RenderOpen();
+            drawingContext.DrawVideo(mediaPlayer, new Rect(0, 0, 160, 100));
+            drawingContext.Close();
+            double dpiX = 1 / 200;
+            double dpiY = 1 / 200;
+            RenderTargetBitmap bmp = new RenderTargetBitmap(160, 100, dpiX, dpiY, PixelFormats.Pbgra32);
+            bmp.Render(drawingVisual);
+            _add.imageReview = bmp;
+            while (!mediaPlayer.NaturalDuration.HasTimeSpan) ;
+            if (mediaPlayer.NaturalDuration.HasTimeSpan)
             {
-                MessageBox.Show("Media Audio!!");
+                var time = TimeSpan.FromSeconds(mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds);
+                _add.DurationString = time.ToString(@"hh\:mm\:ss");
+                Debug.WriteLine("string", _add.DurationString);
+                _add.NowDuration = "00:00:00";
             }
-            _add.File_Path=sFullname_Path_of_Video;     
-            
+            _mediaList.Add(_add);
+            _add = new Media();
+
             //----------------</ add_Video_Image() >----------------
         }
 
@@ -287,6 +300,73 @@ namespace MEDIA_PLAYER
         }
 
         private void ChooseToPlay(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+        public void ReadAllFileInFolder(string path)
+        {
+            // 
+            var files = Directory.GetFiles(path);
+            Debug.WriteLine(files.Count());
+            foreach (string d in files)
+            {
+                Debug.WriteLine(d);
+                if (IsVideoFile(d))
+                {
+                    add_Video_Image(d);
+                    if (mePlayer.Source == null)
+                    {
+                        Debug.WriteLine("path", d);
+                        mePlayer.Source = new Uri(d);
+                        mePlayer.Play();
+                        mePlayer.Stop();
+                        Debug.WriteLine("ok");
+                        mePlayer.MediaFailed += (o, args) =>
+                        {
+                            MessageBox.Show("Media Failed!!");
+                        };
+                    }
+                }
+                else if (IsAudioFile(d))
+                {
+                    add_Audio_image(d);
+                    if (mePlayer.Source == null)
+                    {
+                        Debug.WriteLine("path", d);
+                        mePlayer.Source = new Uri(d);
+                        mePlayer.Play();
+                        mePlayer.Stop();
+                        Debug.WriteLine("ok");
+                        mePlayer.MediaFailed += (o, args) =>
+                        {
+                            MessageBox.Show("Media Failed!!");
+                        };
+                    }
+                }
+            }
+        }
+
+        private void AddFiles(object sender, RoutedEventArgs e)
+        {
+            progressbarLoadmedia.Visibility= Visibility.Visible;
+            var dialog = new System.Windows.Forms.FolderBrowserDialog();
+            var result = dialog.ShowDialog();
+            if (System.Windows.Forms.DialogResult.OK == result)
+            {
+
+                string path = dialog.SelectedPath + "\\";
+
+                ReadAllFileInFolder(path);
+            }
+            progressbarLoadmedia.Visibility= Visibility.Collapsed;
+        }
+
+        private void PlayListView_Scroll(object sender, System.Windows.Controls.Primitives.ScrollEventArgs e)
+        {
+
+        }
+
+        private void DeleteThis(object sender, RoutedEventArgs e)
         {
 
         }

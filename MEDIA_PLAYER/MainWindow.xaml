@@ -23,6 +23,92 @@
         <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
     </Window.CommandBindings>
+    <Window.Resources>
+
+        <ResourceDictionary>
+            <Style x:Key="ScrollThumbs" TargetType="{x:Type Thumb}">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <Grid x:Name="Grid">
+                                <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="Auto" 
+                                           Height="Auto" Fill="Transparent"/>
+                                <Border x:Name="Rectangle1" CornerRadius="10 0 0 10" HorizontalAlignment="Stretch" 
+                                        VerticalAlignment="Stretch" Width="Auto" Height="Auto" 
+                                        Background="{TemplateBinding Background}"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="Tag" Value="Horizontal">
+                                    <Setter TargetName="Rectangle1" Property="Width" Value="Auto"/>
+                                    <Setter TargetName="Rectangle1" Property="Height" Value="7"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+
+
+            <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
+                <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+                <Setter Property="Foreground" Value="DarkGray"/>
+                <Setter Property="Background" Value="DarkGray"/>
+                <Setter Property="Width" Value="10"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type ScrollBar}">
+                            <Grid x:Name="GridRoot" Width="5" Background="{x:Null}">
+                                <Track x:Name="PART_Track" Grid.Row="0" IsDirectionReversed="true" Focusable="False">
+                                    <Track.Thumb>
+                                        <Thumb x:Name="Thumb" Background="{TemplateBinding Foreground}" 
+                                               Style="{DynamicResource ScrollThumbs}"/>
+                                    </Track.Thumb>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton x:Name="PageUp" Command="ScrollBar.PageDownCommand" Opacity="0" Focusable="False"/>
+                                    </Track.IncreaseRepeatButton>
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton x:Name="PageDown" Command="ScrollBar.PageUpCommand" Opacity="0" Focusable="False"/>
+                                    </Track.DecreaseRepeatButton>
+                                </Track>
+                            </Grid>
+
+                            <ControlTemplate.Triggers>
+                                <Trigger SourceName="Thumb" Property="IsMouseOver" Value="true">
+                                    <Setter Value="{DynamicResource ButtonSelectBrush}" 
+                                            TargetName="Thumb" Property="Background"/>
+                                </Trigger>
+                                <Trigger SourceName="Thumb" Property="IsDragging" Value="true">
+                                    <Setter Value="{DynamicResource DarkBrush}" TargetName="Thumb" Property="Background"/>
+                                </Trigger>
+
+                                <Trigger Property="IsEnabled" Value="false">
+                                    <Setter TargetName="Thumb" Property="Visibility" Value="Collapsed"/>
+                                </Trigger>
+                                <Trigger Property="Orientation" Value="Horizontal">
+                                    <Setter TargetName="GridRoot" Property="LayoutTransform">
+                                        <Setter.Value>
+                                            <RotateTransform Angle="-90"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="PART_Track" Property="LayoutTransform">
+                                        <Setter.Value>
+                                            <RotateTransform Angle="-90"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Width" Value="Auto"/>
+                                    <Setter Property="Height" Value="5"/>
+                                    <Setter TargetName="Thumb" Property="Tag" Value="Horizontal"/>
+                                    <Setter TargetName="PageDown" Property="Command" Value="ScrollBar.PageLeftCommand"/>
+                                    <Setter TargetName="PageUp" Property="Command" Value="ScrollBar.PageRightCommand"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"></RowDefinition>
@@ -30,41 +116,73 @@
         </Grid.RowDefinitions>
 
         <DockPanel Grid.Row="1">
-            <StackPanel x:Name="PlayListStackPannel" Width="280" DockPanel.Dock="Right" Visibility="Visible">
-                <ListView x:Name="PlayListView">
+            
+            <Grid x:Name="PlayListStackPannel" Width="280" DockPanel.Dock="Right" Visibility="Visible">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                    <RowDefinition Height="30"></RowDefinition>
+                </Grid.RowDefinitions>
+               
+                <ProgressBar Grid.Row="0" Visibility="Collapsed" x:Name="progressbarLoadmedia"
+                          IsIndeterminate="True" 
+                          Style="{StaticResource MaterialDesignCircularProgressBar}"
+                Value="35" />
+                    
+                    <ListView x:Name="PlayListView" Grid.Row="1" >
+                   
                     <!-- and here's another -->
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Mouse.MouseDown="ChooseToPlay">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="150"></ColumnDefinition>
-                                        <ColumnDefinition Width="*"></ColumnDefinition>
-                                    </Grid.ColumnDefinitions>
-                                    <Image Source="{Binding imageReview}" Height="100" Width="150"></Image>
-                                    <StackPanel Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <ListView.ItemTemplate>
+                            
+                            <DataTemplate>
+                          
+                                <StackPanel Mouse.MouseDown="ChooseToPlay">
+                                <materialDesign:Card 
+  Padding="0"
+  Background="#03a9f4"
+  Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="150"></ColumnDefinition>
+                                            <ColumnDefinition Width="*"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <Image Source="{Binding imageReview}" Height="100" Width="150"></Image>
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center">
 
-                                        <TextBlock TextWrapping="Wrap"
-                              Style="{StaticResource MaterialDesignButtonTextBlock}"
-                              Text="{Binding Description}" />
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock
+                                            <TextBlock TextWrapping="WrapWithOverflow"
+                                        Style="{StaticResource MaterialDesignButtonTextBlock}"
+                                  Text="{Binding Description}" />
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
                               Style="{StaticResource MaterialDesignOverlineTextBlock}"
                               Text="{Binding NowDuration}" />
-                                            <TextBlock
+                                                <TextBlock
                               Style="{StaticResource MaterialDesignOverlineTextBlock}"
                               Text="{Binding DurationString}" />
+                                           
                                         </StackPanel>
-                                    </StackPanel>
-                                </Grid>
-
-
+     <materialDesign:PopupBox
+            Padding="2,0,2,0"
+            HorizontalAlignment="Right"  
+            Style="{DynamicResource MaterialDesignToolForegroundPopupBox}">
+             <StackPanel>
+                                                    <Button
+                Content="More" />
+                                                <Button
+                Content="Options" />
+                                            </StackPanel>
+                                            </materialDesign:PopupBox>
+                                        </StackPanel>
+                                    </Grid>
+                                </materialDesign:Card>
                             </StackPanel>
+                            
                         </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                        </ListView.ItemTemplate>
+
+                    </ListView>
                
-            </StackPanel>
+            </Grid>
             
             <Grid MouseWheel="Grid_MouseWheel">
                 <Grid.RowDefinitions>
@@ -76,20 +194,26 @@
                 <ToolBar>
 
                     <Button
-                  Command="ApplicationCommands.Open" 
-                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
-                  Style="{StaticResource MaterialDesignIconButton}"
-                  ToolTip="MaterialDesignIconButton">
+                         Click="AddFiles"
+                      
+                      IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                      Style="{StaticResource MaterialDesignIconButton}"
+                      ToolTip="Add all media files">
                         <materialDesign:PackIcon
                     Kind="FolderOpen" />
                     </Button>
-               
+                    <Button
+                    Command="ApplicationCommands.Open" 
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}"
+                  ToolTip="Add media file">
+                        <materialDesign:PackIcon
+                    Kind="PlusThick" />
+                    </Button>
+
                     <!-- <Separator /> -->
                 </ToolBar>
-                <ProgressBar Grid.Row="1" Visibility="Collapsed" x:Name="progressbarLoadmedia"
-                          IsIndeterminate="True"
-                          Style="{StaticResource MaterialDesignCircularProgressBar}"
-                Value="35" />
+                
                 <StackPanel Grid.Row="1" Name="StackpannelMedia">
                 <MediaElement Name="mePlayer" MediaOpened="player_MediaOpened" MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
                        
