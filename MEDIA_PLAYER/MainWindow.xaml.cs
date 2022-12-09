@@ -12,6 +12,7 @@ using System.Collections.ObjectModel;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Path = System.IO.Path;
 using System.Linq;
+using System.Windows.Controls;
 
 namespace MEDIA_PLAYER
 {
@@ -23,6 +24,8 @@ namespace MEDIA_PLAYER
         Playlist _playList = new Playlist();
         ObservableCollection<Media> _mediaList = new ObservableCollection<Media>();
         Media _add=new Media();
+        MediaPlayer _Slider = new MediaPlayer();
+        double nowPosion = 0;
         public MainWindow()
         {
             InitializeComponent();
@@ -183,10 +186,10 @@ namespace MEDIA_PLAYER
             };
             mediaPlayer.ScrubbingEnabled = true;
             mediaPlayer.Open(new Uri(sFullname_Path_of_Video));
-
-            mediaPlayer.Play();
-            mediaPlayer.Stop();
-           mediaPlayer.Position = TimeSpan.FromSeconds(0.5);
+            mediaPlayer.ScrubbingEnabled = true;
+           
+            mediaPlayer.Position = TimeSpan.FromSeconds(0);
+           
             _add.File_Path=sFullname_Path_of_Video;
             DrawingVisual drawingVisual = new DrawingVisual();
             DrawingContext drawingContext = drawingVisual.RenderOpen();
@@ -194,7 +197,9 @@ namespace MEDIA_PLAYER
             drawingContext.Close();
             double dpiX = 1 / 200;
             double dpiY = 1 / 200;
+            
             RenderTargetBitmap bmp = new RenderTargetBitmap(160, 100, dpiX, dpiY, PixelFormats.Pbgra32);
+            
             bmp.Render(drawingVisual);
             _add.imageReview = bmp;
             while (!mediaPlayer.NaturalDuration.HasTimeSpan) ;
@@ -255,21 +260,58 @@ namespace MEDIA_PLAYER
         {
             userIsDraggingSlider = true;
             CanvasSeeking.Visibility = Visibility.Visible;
+            nowPosion = sliProgress.Value;
             textSeeking.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
-        }
+            _Slider = new MediaPlayer();
+            //----------------< add_Video_Image() >----------------
+            //*create mediaplayer in memory and jump to position
+            if (_currentPlaying != null)
+            {
+                _Slider.Open(new Uri(_currentPlaying));
+                _Slider.ScrubbingEnabled = true;
+                _Slider.Play();
+                _Slider.Stop();
+                _Slider.Position = TimeSpan.FromSeconds(sliProgress.Value);
 
+                DrawingVisual drawingVisual = new DrawingVisual();
+                DrawingContext drawingContext = drawingVisual.RenderOpen();
+                drawingContext.DrawVideo(_Slider, new Rect(0, 0, 120, 90));
+                drawingContext.Close();
+                double dpiX = 1 / 200;
+                double dpiY = 1 / 200;
+                RenderTargetBitmap bmp = new RenderTargetBitmap(120, 90, dpiX, dpiY, PixelFormats.Pbgra32);
+                bmp.Render(drawingVisual);
+                imageSeeking.Source = bmp;
+            }
+        }
         private void sliProgress_DragCompleted(object sender, DragCompletedEventArgs e)
         {
             userIsDraggingSlider = false;
             mePlayer.Position = TimeSpan.FromSeconds(sliProgress.Value);
-            Debug.WriteLine(sliProgress.Value);
-            Debug.WriteLine(mePlayer.Position.ToString());
+        
             CanvasSeeking.Visibility = Visibility.Collapsed;
+            lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+
         }
 
         private void sliProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+            lblProgressStatus.Text= TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+            textSeeking.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+            _Slider.Position = TimeSpan.FromSeconds(sliProgress.Value);
+            DrawingVisual drawingVisual = new DrawingVisual();
+            DrawingContext drawingContext = drawingVisual.RenderOpen();
+            drawingContext.DrawVideo(_Slider, new Rect(0, 0, 120, 90));
+            drawingContext.Close();
+            double dpiX = 1 / 200;
+            double dpiY = 1 / 200;
+            RenderTargetBitmap bmp = new RenderTargetBitmap(120, 90, dpiX, dpiY, PixelFormats.Pbgra32);
+            bmp.Render(drawingVisual);
+            imageSeeking.Source = bmp;
+            var posision=Mouse.GetPosition(Application.Current.MainWindow);
+            Canvas.SetLeft(imageSeeking, posision.X-50);
+            Canvas.SetLeft(textSeeking, posision.X-30);
+
         }
         private void Grid_MouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -310,6 +352,7 @@ namespace MEDIA_PLAYER
                     if (mePlayer.Source == null)
                     {
                         Debug.WriteLine("path", d);
+                        _currentPlaying = d;
                         mePlayer.Source = new Uri(d);
                         mePlayer.Play();
                         mePlayer.Stop();
@@ -325,6 +368,7 @@ namespace MEDIA_PLAYER
                     add_Audio_image(d);
                     if (mePlayer.Source == null)
                     {
+                        _currentPlaying = d;
                         Debug.WriteLine("path", d);
                         mePlayer.Source = new Uri(d);
                         mePlayer.Play();
