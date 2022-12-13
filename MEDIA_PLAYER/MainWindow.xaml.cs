@@ -13,6 +13,8 @@ using MessageBox = System.Windows.Forms.MessageBox;
 using Path = System.IO.Path;
 using System.Linq;
 using System.Windows.Controls;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
+using System.Numerics;
 
 namespace MEDIA_PLAYER
 {
@@ -21,6 +23,7 @@ namespace MEDIA_PLAYER
         private bool mediaPlayerIsPlaying = false;
         private bool userIsDraggingSlider = false;
         private string _currentPlaying = string.Empty;
+        private int _currentPlayingIndex = 0;
         Playlist _playList = new Playlist();
         ObservableCollection<Media> _mediaList = new ObservableCollection<Media>();
         Media _add=new Media();
@@ -81,9 +84,11 @@ namespace MEDIA_PLAYER
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             MediaPlayer mediaPlayer = new MediaPlayer();
+
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Video |*.flv;*.avi;*.vmv;*.mp4;*.mpg;*.m4v|Audio|*.mp3;*.mpg;*.mpeg;*.wav;*.wave|All files (*.*)|*.*";
             progressbarLoadmedia.Visibility = Visibility.Visible;
+           
             if (openFileDialog.ShowDialog() == true)
             {
                 var path = openFileDialog.FileName;
@@ -166,9 +171,10 @@ namespace MEDIA_PLAYER
             mediaPlayer.Open(new Uri(path));
             while (!mediaPlayer.NaturalDuration.HasTimeSpan) ;
             var time = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
-            _add.DurationString = TimeSpan.FromSeconds(time).ToString(@"hh\:mm\:ss");
-            _add.NowDuration = "00:00:00";
+            _add.Duration_length = time;
+            _add.NowDurationLength = 0;
             _add.File_Path = path;
+          
             _mediaList.Add(_add);
 
         }
@@ -187,8 +193,9 @@ namespace MEDIA_PLAYER
             mediaPlayer.ScrubbingEnabled = true;
             mediaPlayer.Open(new Uri(sFullname_Path_of_Video));
             mediaPlayer.ScrubbingEnabled = true;
-           
-            mediaPlayer.Position = TimeSpan.FromSeconds(0);
+
+            mediaPlayer.Play();
+            mediaPlayer.Pause();
            
             _add.File_Path=sFullname_Path_of_Video;
             DrawingVisual drawingVisual = new DrawingVisual();
@@ -205,11 +212,12 @@ namespace MEDIA_PLAYER
             while (!mediaPlayer.NaturalDuration.HasTimeSpan) ;
             if (mediaPlayer.NaturalDuration.HasTimeSpan)
             {
-                var time = TimeSpan.FromSeconds(mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds);
-                _add.DurationString = time.ToString(@"hh\:mm\:ss");
+                var time = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                _add.Duration_length = time;
                 Debug.WriteLine("string", _add.DurationString);
-                _add.NowDuration = "00:00:00";
+                _add.NowDurationLength = 0.0;
             }
+           
             _mediaList.Add(_add);
             
 
@@ -288,7 +296,7 @@ namespace MEDIA_PLAYER
         {
             userIsDraggingSlider = false;
             mePlayer.Position = TimeSpan.FromSeconds(sliProgress.Value);
-        
+            _mediaList[_currentPlayingIndex].NowDurationLength = sliProgress.Value;
             CanvasSeeking.Visibility = Visibility.Collapsed;
             lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
 
@@ -296,21 +304,33 @@ namespace MEDIA_PLAYER
 
         private void sliProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            lblProgressStatus.Text= TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
-            textSeeking.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
-            _Slider.Position = TimeSpan.FromSeconds(sliProgress.Value);
-            DrawingVisual drawingVisual = new DrawingVisual();
-            DrawingContext drawingContext = drawingVisual.RenderOpen();
-            drawingContext.DrawVideo(_Slider, new Rect(0, 0, 120, 90));
-            drawingContext.Close();
-            double dpiX = 1 / 200;
-            double dpiY = 1 / 200;
-            RenderTargetBitmap bmp = new RenderTargetBitmap(120, 90, dpiX, dpiY, PixelFormats.Pbgra32);
-            bmp.Render(drawingVisual);
-            imageSeeking.Source = bmp;
-            var posision=Mouse.GetPosition(Application.Current.MainWindow);
-            Canvas.SetLeft(imageSeeking, posision.X-50);
-            Canvas.SetLeft(textSeeking, posision.X-30);
+            if (userIsDraggingSlider)
+            {
+                lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+                textSeeking.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+                _Slider.Position = TimeSpan.FromSeconds(sliProgress.Value);
+                DrawingVisual drawingVisual = new DrawingVisual();
+                DrawingContext drawingContext = drawingVisual.RenderOpen();
+                drawingContext.DrawVideo(_Slider, new Rect(0, 0, 120, 90));
+                drawingContext.Close();
+                double dpiX = 1 / 200;
+                double dpiY = 1 / 200;
+                RenderTargetBitmap bmp = new RenderTargetBitmap(120, 90, dpiX, dpiY, PixelFormats.Pbgra32);
+
+                bmp.Render(drawingVisual);
+                imageSeeking.Source = bmp;
+                var posision = Mouse.GetPosition(Application.Current.MainWindow);
+                Canvas.SetLeft(imageSeeking, posision.X - 50);
+                Canvas.SetLeft(textSeeking, posision.X - 30);
+            }
+            else
+            {
+                double value = sliProgress.Value;
+                TimeSpan newPosition = TimeSpan.FromSeconds(value);
+                lblProgressStatus.Text=newPosition.ToString(@"hh\:mm\:ss");
+                _mediaList[_currentPlayingIndex].NowDurationLength = value;
+                mePlayer.Position = newPosition;
+            }
 
         }
         private void Grid_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -324,39 +344,61 @@ namespace MEDIA_PLAYER
             if ((mePlayer.NaturalDuration.HasTimeSpan))
             {
                 lblProgressStatusEnd.Text = TimeSpan.FromSeconds(mePlayer.NaturalDuration.TimeSpan.TotalSeconds).ToString(@"hh\:mm\:ss");
-                Debug.WriteLine(TimeSpan.FromSeconds(mePlayer.NaturalDuration.TimeSpan.TotalSeconds).ToString(@"hh\:mm\:ss"));
+                sliProgress.Maximum = mePlayer.NaturalDuration.TimeSpan.TotalSeconds;
+                sliProgress.Value = mePlayer.Position.TotalSeconds;
             }
-            Debug.WriteLine("open");
         }
 
         private void player_MediaEnded(object sender, RoutedEventArgs e)
         {
 
         }
-
+        //FIXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
         private void ChooseToPlay(object sender, MouseButtonEventArgs e)
         {
+            var x = PlayListView.SelectedIndex;
+            if (x != -1)
+            {
+                Debug.WriteLine("current play " + _currentPlayingIndex.ToString());
+                _mediaList[_currentPlayingIndex].NowDurationLength = sliProgress.Value;
 
+                _currentPlaying = _mediaList[x].File_Path;
+                _currentPlayingIndex = x;
+                mePlayer.Source = new Uri(_currentPlaying);
+                mePlayer.Play();
+                mePlayer.Pause();
+                mePlayer.Position = TimeSpan.FromSeconds(_mediaList[x].NowDurationLength);
+
+
+                sliProgress.Value = _mediaList[x].NowDurationLength;
+
+                lblProgressStatus.Text = _mediaList[x].NowDuration;
+
+                Debug.WriteLine("current play " + x.ToString());
+                Debug.WriteLine("current play " + _mediaList[_currentPlayingIndex].NowDurationLength.ToString());
+                mediaPlayerIsPlaying = false;
+               
+                //change sliderbar
+            }
         }
         public void ReadAllFileInFolder(string path)
         {
             // 
             var files = Directory.GetFiles(path);
-            Debug.WriteLine(files.Count());
+           
             foreach (string d in files)
             {
+                progressbarLoadmedia.Value += 5;
                 Debug.WriteLine(d);
                 if (IsVideoFile(d))
                 {
                     add_Video_Image(d);
                     if (mePlayer.Source == null)
                     {
-                        Debug.WriteLine("path", d);
                         _currentPlaying = d;
                         mePlayer.Source = new Uri(d);
                         mePlayer.Play();
                         mePlayer.Stop();
-                        Debug.WriteLine("ok");
                         mePlayer.MediaFailed += (o, args) =>
                         {
                             MessageBox.Show("Media Failed!!");
@@ -419,6 +461,25 @@ namespace MEDIA_PLAYER
             {
                 PlayListStackPannel.Visibility = Visibility.Visible;
                 HiddenButton.Content = "Hide";
+            }
+        }
+
+        private void hoverEvent(object sender, MouseEventArgs e)
+        {
+            var send = sender as StackPanel; if (send != null) {
+                Debug.WriteLine(send.GetType());
+            send.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void DeleteMovie(object sender, RoutedEventArgs e)
+        {
+            var item = (sender as FrameworkElement).DataContext;
+            int index = PlayListView.Items.IndexOf(item);
+           
+            if (index != -1)
+            {
+                _mediaList.RemoveAt(index);
             }
         }
     }
