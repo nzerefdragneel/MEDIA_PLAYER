@@ -1,20 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.ComponentModel;
 using System.IO;
-using System.Windows.Media.Imaging;
 using System.Windows.Media;
 
 namespace MEDIA_PLAYER
 {
     class Media: INotifyPropertyChanged
     {
+       
         public int Order { get; set; }
         public string File_Path { get; set; }
-        public int Duration_length { get; set; }
+        public double Duration_length { get; set; }
         public ImageSource imageReview { get; set; }
         public string Description
         {
@@ -25,9 +21,12 @@ namespace MEDIA_PLAYER
         }
         public string DurationString
         {
-            get;set;
+            get => TimeSpan.FromSeconds(Duration_length).ToString(@"hh\:mm\:ss");
         }
-        public string NowDuration { get; set; }
+        public double NowDurationLength { get; set; }
+        public string NowDuration {
+            get => TimeSpan.FromSeconds(NowDurationLength).ToString(@"hh\:mm\:ss"); 
+        }
         public event PropertyChangedEventHandler? PropertyChanged;
     }
 
