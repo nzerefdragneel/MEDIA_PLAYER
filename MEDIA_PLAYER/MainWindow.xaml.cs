@@ -15,16 +15,27 @@ using System.Linq;
 using System.Windows.Controls;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 using System.Numerics;
+using static System.Net.Mime.MediaTypeNames;
+using Application = System.Windows.Application;
+using MaterialDesignThemes.Wpf;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace MEDIA_PLAYER
 {
     public partial class MainWindow : Window
     {
-        private bool mediaPlayerIsRepeat = false;
+        private int mediaPlayerIsRepeat = -1;//-1:no repeat;0:repeat:1 ;1:repeat all
+        private bool mediaPlayerIsShuffling=false;
+        private int shuffleIndex = -1;
+        private List<int> _shuffleList = new List<int>();
         private bool mediaPlayerIsPlaying = false;
         private bool userIsDraggingSlider = false;
         private string _currentPlaying = string.Empty;
         private int _currentPlayingIndex = 0;
+        private int _nextPlayingIndex = -1;
+        private int _prevPlayingIndex = -1;
+        Random rnd = new Random();
         Playlist _playList = new Playlist();
         ObservableCollection<Media> _mediaList = new ObservableCollection<Media>();
         Media _add=new Media();
@@ -53,7 +64,7 @@ namespace MEDIA_PLAYER
             }
         }
         static string[] videoExt =
-      {
+        {
             ".FLV",".AVI",".WMV",".MP4",".MPG",".MPEG",".M4V"
         };
         static string[] audioExt =
@@ -82,6 +93,57 @@ namespace MEDIA_PLAYER
         {
             return -1 != Array.IndexOf(videoExt, Path.GetExtension(path).ToUpperInvariant());
         }
+        bool checkNext()
+        {
+            if (mediaPlayerIsShuffling == true) return true;
+            if (mediaPlayerIsRepeat != -1) return false;
+            return _currentPlayingIndex + 1 < _mediaList.Count ? true : false;
+        }
+
+        private int nextPlay(int current)
+        {
+            //shuffle
+            if (mediaPlayerIsShuffling == true)
+            {
+                if (shuffleIndex == _shuffleList.Count-1)
+                {
+                    if (_mediaList.Count == 1) return 0;
+                    var next = rnd.Next(0, _mediaList.Count);
+                    while (next == _currentPlayingIndex) next = rnd.Next(0, _mediaList.Count);
+                    return next;
+                }
+                return _shuffleList[shuffleIndex+1];
+            }
+            //repeat
+            if (mediaPlayerIsRepeat != -1) return -1;
+            //auto play
+            return current+1<_mediaList.Count?current + 1 : -1;
+        }
+
+        bool checkPrev()
+        {
+            Debug.WriteLine("check prev: shuf {0}, repeat {1}", mediaPlayerIsShuffling, mediaPlayerIsRepeat);
+            if (mediaPlayerIsShuffling== true)
+            {
+                if (shuffleIndex < 1) return false;
+                return true;
+            }
+            if (mediaPlayerIsRepeat!=-1) return false;
+            Debug.WriteLine("current play:{0}", _currentPlayingIndex);
+            return _currentPlayingIndex - 1 >= 0 ? true: false;
+        }
+        private int prevPlay(int current)
+        {
+            if (mediaPlayerIsShuffling == true)
+            {
+                Debug.WriteLine("list {0} index {1}", _shuffleList.Count, shuffleIndex);
+                if (_shuffleList.Count == 0 || shuffleIndex<1) return -1;
+                return _shuffleList[shuffleIndex - 1];
+            }
+            if (mediaPlayerIsRepeat != -1) return -1;
+            return current - 1 >= 0 ? current - 1 : -1;
+        }
+
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             MediaPlayer mediaPlayer = new MediaPlayer();
@@ -107,8 +169,7 @@ namespace MEDIA_PLAYER
                     
                     Debug.WriteLine("path",_currentPlaying);
                     mePlayer.Source = new Uri(_currentPlaying);
-                    mePlayer.Play();
-                    mePlayer.Stop();
+                    
                     Debug.WriteLine("ok");
                     mePlayer.MediaFailed += (o, args) =>
                     {
@@ -117,6 +178,28 @@ namespace MEDIA_PLAYER
                 }
                 progressbarLoadmedia.Visibility = Visibility.Collapsed;
             }
+
+        }
+        private void ChangeCurrentPlay(int current)
+        {
+            _currentPlaying = _mediaList[current].File_Path;
+            _currentPlayingIndex = current;
+            mePlayer.Source = new Uri(_currentPlaying);
+            mePlayer.Position = TimeSpan.FromSeconds(_mediaList[current].NowDurationLength);
+            if (mediaPlayerIsPlaying == true) mePlayer.Play();
+            else mePlayer.Pause();
+            sliProgress.Value = _mediaList[current].NowDurationLength;
+            lblProgressStatus.Text = _mediaList[current].NowDuration;
+            
+        }
+        private void Repeat()
+        {
+            _mediaList[_currentPlayingIndex].NowDurationLength = 0;
+            mePlayer.Position = TimeSpan.FromSeconds(0);
+            if (mediaPlayerIsPlaying == true) mePlayer.Play();
+            else mePlayer.Pause();
+            sliProgress.Value = _mediaList[_currentPlayingIndex].NowDurationLength;
+            lblProgressStatus.Text = _mediaList[_currentPlayingIndex].NowDuration;
 
         }
         private void mediaplayer_OpenMedia(object sender, EventArgs e)
@@ -275,8 +358,7 @@ namespace MEDIA_PLAYER
             {
                 _Slider.Open(new Uri(_currentPlaying));
                 _Slider.ScrubbingEnabled = true;
-                _Slider.Play();
-                _Slider.Stop();
+                
                 _Slider.Position = TimeSpan.FromSeconds(sliProgress.Value);
 
                 DrawingVisual drawingVisual = new DrawingVisual();
@@ -346,37 +428,66 @@ namespace MEDIA_PLAYER
                 sliProgress.Value = mePlayer.Position.TotalSeconds;
             }
         }
-
+        private void addShuffle(int next)
+        {
+            if (shuffleIndex == _shuffleList.Count - 1)
+                _shuffleList.Add(next);
+            shuffleIndex += 1;
+        }
         private void player_MediaEnded(object sender, RoutedEventArgs e)
         {
+            if (mediaPlayerIsShuffling==true)
+            {
+                int next = nextPlay(_currentPlayingIndex);
+                addShuffle(next);
+                Debug.WriteLine("is next: {0}",next);
+                if (next != -1)
+                {
+                    if (_mediaList[next].NowDurationLength+1 > _mediaList[next].Duration_length)
+                    {
+                        Debug.WriteLine("check {0}", next);
+                       _currentPlayingIndex= next;
+                        Repeat();
+                    }
+                    else { 
+                        ChangeCurrentPlay(next); 
+                    }
+                }
+            }
+            else
+            if (mediaPlayerIsRepeat == 0)
+            {
+                mediaPlayerIsRepeat =-1;
+                RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.RepeatOff;
+                Repeat();
+            }
+            else if (mediaPlayerIsRepeat == 1)
+            {
+                Repeat();
+            }
+            else
+            {
+                int next = nextPlay(_currentPlayingIndex);
+                if (next != -1)
+                {
+                    ChangeCurrentPlay(next);
+                    
+                }
+                //else here: handing cacs kieeux:v
 
+            }
         }
-        //FIXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
         private void ChooseToPlay(object sender, MouseButtonEventArgs e)
         {
             var x = PlayListView.SelectedIndex;
             if (x != -1)
             {
+                _shuffleList = new List<int>();
+                shuffleIndex = -1;
                 Debug.WriteLine("current play " + _currentPlayingIndex.ToString());
                 _mediaList[_currentPlayingIndex].NowDurationLength = sliProgress.Value;
-
-                _currentPlaying = _mediaList[x].File_Path;
-                _currentPlayingIndex = x;
-                mePlayer.Source = new Uri(_currentPlaying);
-                mePlayer.Play();
-                mePlayer.Pause();
-                mePlayer.Position = TimeSpan.FromSeconds(_mediaList[x].NowDurationLength);
-
-
-                sliProgress.Value = _mediaList[x].NowDurationLength;
-
-                lblProgressStatus.Text = _mediaList[x].NowDuration;
-
-                Debug.WriteLine("current play " + x.ToString());
-                Debug.WriteLine("current play " + _mediaList[_currentPlayingIndex].NowDurationLength.ToString());
-                mediaPlayerIsPlaying = false;
-               
-                //change sliderbar
+                ChangeCurrentPlay(x);
+    
             }
         }
         public void ReadAllFileInFolder(string path)
@@ -395,8 +506,7 @@ namespace MEDIA_PLAYER
                     {
                         _currentPlaying = d;
                         mePlayer.Source = new Uri(d);
-                        mePlayer.Play();
-                        mePlayer.Stop();
+                       
                         mePlayer.MediaFailed += (o, args) =>
                         {
                             MessageBox.Show("Media Failed!!");
@@ -411,8 +521,7 @@ namespace MEDIA_PLAYER
                         _currentPlaying = d;
                         Debug.WriteLine("path", d);
                         mePlayer.Source = new Uri(d);
-                        mePlayer.Play();
-                        mePlayer.Stop();
+                       
                         Debug.WriteLine("ok");
                         mePlayer.MediaFailed += (o, args) =>
                         {
@@ -469,7 +578,8 @@ namespace MEDIA_PLAYER
             send.Visibility = Visibility.Visible;
             }
         }
-
+        //current=index of playlist
+       
         private void DeleteMovie(object sender, RoutedEventArgs e)
         {
             var item = (sender as FrameworkElement).DataContext;
@@ -478,20 +588,100 @@ namespace MEDIA_PLAYER
             if (index != -1)
             {
                 _mediaList.RemoveAt(index);
+                if (index == _currentPlayingIndex)
+                {
+                    ChangeCurrentPlay(0);
+                }
             }
         }
 
         private void RepeatMode(object sender, RoutedEventArgs e)
         {
-          
-            mediaPlayerIsRepeat = !mediaPlayerIsRepeat;
-          if (mediaPlayerIsRepeat == false)
+          mediaPlayerIsRepeat =mediaPlayerIsRepeat==1?-1:mediaPlayerIsRepeat+1;
+            
+          if (mediaPlayerIsRepeat == -1)
             {
                 RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.RepeatOff;
+            }
+            else if (mediaPlayerIsRepeat==0)
+            {
+                RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.RepeatOnce;
             }
             else
             {
                 RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Repeat;
+            }
+        }
+
+        private void Save_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (_mediaList.Count != 0)
+            {
+                e.CanExecute = true;
+            }
+        }
+
+        private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+
+        }
+
+        private void Next_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = checkNext();
+        }
+
+        private void Next_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            int next = nextPlay(_currentPlayingIndex);
+            Debug.WriteLine("next_excuted: {0}",next);
+            if (next != -1)
+            {
+                if (mediaPlayerIsShuffling == true)
+                {
+                    addShuffle(next);
+                    if (_mediaList[next].DurationString == _mediaList[next].NowDuration)
+                    {
+                        _currentPlayingIndex = next;
+                        _currentPlaying = _mediaList[next].File_Path;
+                        mePlayer.Source = new Uri(_currentPlaying);
+                        Repeat();
+                    }
+                    else
+                    {
+
+                        ChangeCurrentPlay(next);
+                    }
+                }
+                ChangeCurrentPlay(next);
+            }
+        }
+        private void Prev_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = checkPrev();
+        }
+
+        private void Prev_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            int prev = prevPlay(_currentPlayingIndex);
+            shuffleIndex -= 1;
+            Debug.WriteLine("pre={0}",prev);
+            ChangeCurrentPlay(prev);
+        }
+
+        private void clickShuffleBtn(object sender, RoutedEventArgs e)
+        {
+            mediaPlayerIsShuffling = !mediaPlayerIsShuffling;
+            if (mediaPlayerIsShuffling == true)
+            {
+                ShuffleIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Shuffle;
+                _shuffleList = new List<int>();
+                _shuffleList.Add(_currentPlayingIndex);
+                shuffleIndex = 0;
+            }
+            else
+            {
+                ShuffleIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.ShuffleDisabled;
             }
         }
     }
