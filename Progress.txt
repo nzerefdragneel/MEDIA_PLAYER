@@ -1,7 +1,6 @@
--autoplay
--previous
--repeat and shuffle
--save as
+-previous click=save
+-repeat and shuffle: one
+-save as:do it
 
-->save and load playlist
 -> recent file
+-> xóa cấp phát bộ nhớ lung ta lung tung:(

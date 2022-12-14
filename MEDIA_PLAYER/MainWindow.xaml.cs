@@ -28,6 +28,10 @@ namespace MEDIA_PLAYER
         private bool mediaPlayerIsShuffling=false;
         private int shuffleIndex = -1;
         private List<int> _shuffleList = new List<int>();
+        private List<int> _prevList = new List<int>();
+        private List<string> _prevListName = new List<string>();
+        private List<string> _prevListFullPathName = new List<string>();
+        private bool autoplay = true;
 
         private bool mediaPlayerIsPlaying = false;
         private bool userIsDraggingSlider = false;
@@ -37,6 +41,8 @@ namespace MEDIA_PLAYER
         Random rnd = new Random();
 
         private string playlistPath = string.Empty;
+
+        //add to playlist change this, new playlist..
         private bool playlistIsChange = false;
         ObservableCollection<Media> _mediaList = new ObservableCollection<Media>();
        
@@ -55,6 +61,7 @@ namespace MEDIA_PLAYER
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             PlayListView.ItemsSource = _mediaList;
+            OutlinedComboBox.ItemsSource = _prevListName;
         }
         private string _shortName
         {
@@ -145,10 +152,16 @@ namespace MEDIA_PLAYER
             if (mediaPlayerIsRepeat != -1) return -1;
             return current - 1 >= 0 ? current - 1 : -1;
         }
-
+        private bool checkHavingFile(string path)
+        {
+            foreach (var media in _mediaList)
+            {
+                if (string.Compare(path, media.File_Path) == 0) return true;
+            }
+            return false;
+        }
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            MediaPlayer mediaPlayer = new MediaPlayer();
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Video |*.flv;*.avi;*.vmv;*.mp4;*.mpg;*.m4v|Audio|*.mp3;*.mpg;*.mpeg;*.wav;*.wave|All files (*.*)|*.*";
@@ -157,38 +170,61 @@ namespace MEDIA_PLAYER
             if (openFileDialog.ShowDialog() == true)
             {
                 var path = openFileDialog.FileName;
-                if (IsVideoFile(path))
+                if (checkHavingFile(path) == true)
                 {
-                    add_Video_Image(path);
-                    AudiaPlayer.Visibility = Visibility.Collapsed;
+                    MessageBox.Show("File is exist");
                 }
                 else
                 {
-                    add_Audio_image(path);
-                }
-                if (mePlayer.Source==null )
-                {
-                    _currentPlaying = openFileDialog.FileName;
-                    
-                    Debug.WriteLine("path",_currentPlaying);
-                    mePlayer.Source = new Uri(_currentPlaying);
-                    
-                    Debug.WriteLine("ok");
-                    mePlayer.MediaFailed += (o, args) =>
+                    if (IsVideoFile(path))
                     {
-                        MessageBox.Show("Media Failed!!");
-                    };
+                        add_Video_Image(path);
+                        AudiaPlayer.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        add_Audio_image(path);
+                    }
+                    if (mePlayer.Source == null)
+                    {
+                        _currentPlaying = openFileDialog.FileName;
+
+                        Debug.WriteLine("path", _currentPlaying);
+                        mePlayer.Source = new Uri(_currentPlaying);
+
+                        Debug.WriteLine("ok");
+                        mePlayer.MediaFailed += (o, args) =>
+                        {
+                            MessageBox.Show("Media Failed!!");
+                        };
+                    }
                 }
                 progressbarLoadmedia.Visibility = Visibility.Collapsed;
             }
 
         }
+        private void updatePreList()
+        {
+            for (var i=0;i<_prevListFullPathName.Count;i++)
+            {
+                if (string.Compare(_currentPlaying, _prevListFullPathName[i]) == 0)
+                {
+                    _prevList.RemoveAt(i);
+                    _prevListName.RemoveAt(i);
+                    _prevListFullPathName.RemoveAt(i);
+                    break;
+                }
+            }
+            _prevList.Add(_currentPlayingIndex);
+            _prevListName.Add(Path.GetFileNameWithoutExtension(_currentPlaying));
+            _prevListFullPathName.Add(_currentPlaying);
+        }
         private void ChangeCurrentPlay(int current)
         {
-
            
-            if (File.Exists(_currentPlaying))
+            if (File.Exists(_mediaList[current].File_Path))
             {
+                updatePreList();
                 _currentPlaying = _mediaList[current].File_Path;
                 if (IsAudioFile(_currentPlaying))
                 {
@@ -226,6 +262,7 @@ namespace MEDIA_PLAYER
         
         private void add_Audio_image(string path)
         {
+            playlistIsChange = true;
             _add = new Media();
             var bitmap = new BitmapImage(new Uri("images/play.png", UriKind.Relative));
             _add.imageReview = bitmap;
@@ -242,6 +279,7 @@ namespace MEDIA_PLAYER
         }
         private void add_Video_Image(string sFullname_Path_of_Video)
         {
+            playlistIsChange = true;
             _add = new Media();
             //----------------< add_Video_Image() >----------------
             //*create mediaplayer in memory and jump to position
@@ -410,30 +448,32 @@ namespace MEDIA_PLAYER
                 _shuffleList.Add(next);
             shuffleIndex += 1;
         }
-        private void player_MediaEnded(object sender, RoutedEventArgs e)
+        private void playNextMeda()
         {
-            if (mediaPlayerIsShuffling==true)
+            if (mediaPlayerIsShuffling == true)
             {
                 int next = nextPlay(_currentPlayingIndex);
                 addShuffle(next);
-                Debug.WriteLine("is next: {0}",next);
+                Debug.WriteLine("is next: {0}", next);
                 if (next != -1)
                 {
-                    if (_mediaList[next].NowDurationLength+1 > _mediaList[next].Duration_length)
+                    if (_mediaList[next].NowDurationLength + 1 > _mediaList[next].Duration_length)
                     {
                         Debug.WriteLine("check {0}", next);
-                       _currentPlayingIndex= next;
+                        _currentPlayingIndex = next;
                         Repeat();
                     }
-                    else { 
-                        ChangeCurrentPlay(next); 
+                    else
+                    {
+                        updatePreList();
+                        ChangeCurrentPlay(next);
                     }
                 }
             }
             else
             if (mediaPlayerIsRepeat == 0)
             {
-                mediaPlayerIsRepeat =-1;
+                mediaPlayerIsRepeat = -1;
                 RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.RepeatOff;
                 Repeat();
             }
@@ -446,24 +486,30 @@ namespace MEDIA_PLAYER
                 int next = nextPlay(_currentPlayingIndex);
                 if (next != -1)
                 {
+                    updatePreList();
                     ChangeCurrentPlay(next);
-                    
+
                 }
                 //else here: handing cacs kieeux:v
 
             }
+        }
+        private void player_MediaEnded(object sender, RoutedEventArgs e)
+        {
+            if (autoplay == false) { return; }
+            playNextMeda();
         }
         private void ChooseToPlay(object sender, MouseButtonEventArgs e)
         {
             var x = PlayListView.SelectedIndex;
             if (x != -1)
             {
-                _shuffleList = new List<int>();
+                _shuffleList.Clear();
                 shuffleIndex = -1;
                 Debug.WriteLine("current play " + _currentPlayingIndex.ToString());
                 _mediaList[_currentPlayingIndex].NowDurationLength = sliProgress.Value;
+                updatePreList();
                 ChangeCurrentPlay(x);
-    
             }
         }
         public void ReadAllFileInFolder(string path)
@@ -475,35 +521,42 @@ namespace MEDIA_PLAYER
             {
                 progressbarLoadmedia.Value += 5;
                 Debug.WriteLine(d);
-                if (IsVideoFile(d))
+                if (checkHavingFile(d) == true)
                 {
-                    add_Video_Image(d);
-                    if (mePlayer.Source == null)
-                    {
-                        AudiaPlayer.Visibility = Visibility.Collapsed;
-                        _currentPlaying = d;
-                        mePlayer.Source = new Uri(d);
-                        mePlayer.MediaFailed += (o, args) =>
-                        {
-                            MessageBox.Show("Media Failed!!");
-                        };
-                    }
+                    //handle here
                 }
-                else if (IsAudioFile(d))
+                else
                 {
-                    add_Audio_image(d);
-                    if (mePlayer.Source == null)
+                    if (IsVideoFile(d))
                     {
-                        _currentPlaying = d;
-                        Debug.WriteLine("path", d);
-                        mePlayer.Source = new Uri(d);
-                        AudiaPlayer.Visibility = Visibility.Visible;
-                        
-                        Debug.WriteLine("ok");
-                        mePlayer.MediaFailed += (o, args) =>
+                        add_Video_Image(d);
+                        if (mePlayer.Source == null)
                         {
-                            MessageBox.Show("Media Failed!!");
-                        };
+                            AudiaPlayer.Visibility = Visibility.Collapsed;
+                            _currentPlaying = d;
+                            mePlayer.Source = new Uri(d);
+                            mePlayer.MediaFailed += (o, args) =>
+                            {
+                                MessageBox.Show("Media Failed!!");
+                            };
+                        }
+                    }
+                    else if (IsAudioFile(d))
+                    {
+                        add_Audio_image(d);
+                        if (mePlayer.Source == null)
+                        {
+                            _currentPlaying = d;
+                            Debug.WriteLine("path", d);
+                            mePlayer.Source = new Uri(d);
+                            AudiaPlayer.Visibility = Visibility.Visible;
+
+                            Debug.WriteLine("ok");
+                            mePlayer.MediaFailed += (o, args) =>
+                            {
+                                MessageBox.Show("Media Failed!!");
+                            };
+                        }
                     }
                 }
             }
@@ -561,12 +614,18 @@ namespace MEDIA_PLAYER
         {
             var item = (sender as FrameworkElement).DataContext;
             int index = PlayListView.Items.IndexOf(item);
-           
             if (index != -1)
             {
+                playlistIsChange= true;
                 _mediaList.RemoveAt(index);
                 if (index == _currentPlayingIndex)
                 {
+                    var next = nextPlay(_currentPlayingIndex);
+                    if (next != -1)
+                    {
+                        ChangeCurrentPlay(next);
+                    }
+                    else
                     ChangeCurrentPlay(0);
                 }
             }
@@ -582,10 +641,14 @@ namespace MEDIA_PLAYER
             }
             else if (mediaPlayerIsRepeat==0)
             {
+                mediaPlayerIsShuffling = false;
+                ShuffleIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.ShuffleDisabled;
                 RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.RepeatOnce;
             }
             else
             {
+                mediaPlayerIsShuffling = false;
+                ShuffleIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.ShuffleDisabled;
                 RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Repeat;
             }
         }
@@ -599,32 +662,43 @@ namespace MEDIA_PLAYER
                 e.CanExecute = true;
             }
         }
-
-        private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
+        private bool openPathToSave()
         {
-            if (playlistPath == string.Empty)
-            {
-                var dialog = new SaveFileDialog();
-                dialog.DefaultExt = "Plt";
-                dialog.Filter = "Playlist (*.Plt)|*.Plt";
+            var dialog = new SaveFileDialog();
+            dialog.DefaultExt = "Plt";
+            dialog.Filter = "Playlist (*.Plt)|*.Plt";
 
-                if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
-                {
-                    return;
-                }
-                playlistPath = dialog.FileName;
-                Nameplaylist.Text = Path.GetFileNameWithoutExtension(playlistPath);
+            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            {
+                return false;
             }
+            playlistPath = dialog.FileName;
+            Nameplaylist.Text = Path.GetFileNameWithoutExtension(playlistPath);
+            return true;
+        }
+        private void SaveAsPlaylist()
+        {
             StreamWriter output;
             output = new StreamWriter(playlistPath);
             StringBuilder writeFile = new StringBuilder();
-            for (int i=0;i< _mediaList.Count;i++)
+            for (int i = 0; i < _mediaList.Count; i++)
             {
                 writeFile.AppendLine(_mediaList[i].File_Path);
             }
             Debug.WriteLine(writeFile.ToString());
             output.WriteLine(writeFile.ToString());
             output.Close();
+            playlistIsChange = false;
+            MessageBox.Show("Complete!", "Notication");
+        }
+        private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (playlistPath == string.Empty)
+            {
+                var check=openPathToSave();
+                if (check == false) return;
+            }
+            SaveAsPlaylist();
 
         }
 
@@ -676,8 +750,10 @@ namespace MEDIA_PLAYER
             mediaPlayerIsShuffling = !mediaPlayerIsShuffling;
             if (mediaPlayerIsShuffling == true)
             {
+                mediaPlayerIsRepeat = -1;
+                RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.RepeatOff;
                 ShuffleIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Shuffle;
-                _shuffleList = new List<int>();
+                _shuffleList.Clear();
                 _shuffleList.Add(_currentPlayingIndex);
                 shuffleIndex = 0;
             }
@@ -689,18 +765,39 @@ namespace MEDIA_PLAYER
 
         private void Open_Playlist(object sender, RoutedEventArgs e)
         {
-            //lưu lại mấy thằng cũ ở đây:v
-           
+            //lưu lại mấy thằng cũ ở đây:
+            
+            if (playlistIsChange == true)
+            {
+                if (playlistPath != string.Empty)
+                {
+                    MessageBoxResult choice = (MessageBoxResult)MessageBox.Show("Play list has been change, Save as?", "Choose", (System.Windows.Forms.MessageBoxButtons)MessageBoxButton.OKCancel);
+                    if (choice == MessageBoxResult.OK)
+                    {
+                        SaveAsPlaylist();
+                    }
+                }
+                else
+                {
+                    MessageBoxResult choice = (MessageBoxResult)MessageBox.Show("Do you want to save the playlist?", "Choose", (System.Windows.Forms.MessageBoxButtons)MessageBoxButton.OKCancel);
+                    if (choice == MessageBoxResult.OK)
+                    {
+                        openPathToSave();
+                        SaveAsPlaylist();
+                    }
+                }
+
+            }
+
             var dialog = new OpenFileDialog();
             dialog.Filter = "Playlist (*.Plt)|*.Plt";
             if (dialog.ShowDialog() != true)
             {
                 return;
             }
-
             _mediaList.Clear();
             shuffleIndex = -1;
-            _shuffleList = new List<int>();
+            _shuffleList.Clear();
             mediaPlayerIsPlaying = false;
             userIsDraggingSlider = false;
             _currentPlaying = string.Empty;
@@ -743,6 +840,25 @@ namespace MEDIA_PLAYER
             Debug.WriteLine(_mediaList.Count);
             input.Close();
             progressbarLoadmedia.Visibility = Visibility.Collapsed;
+            playlistIsChange = false;
+        }
+
+        private void ChangeAutoPlay(object sender, RoutedEventArgs e)
+        {
+            autoplay = !autoplay;
+            Debug.WriteLine(autoplay);
+            if (autoplay == true)
+            {
+                AutoPlayToggleBtn.IsChecked = true;
+                if (sliProgress.Value + 1 > sliProgress.Maximum)
+                {
+                    playNextMeda();
+                }
+            }
+            else
+            {
+                AutoPlayToggleBtn.IsChecked = false;
+            }
         }
     }
 }

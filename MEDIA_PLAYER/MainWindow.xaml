@@ -171,7 +171,15 @@
                     <RowDefinition Height="*"></RowDefinition>
                     <RowDefinition Height="30"></RowDefinition>
                 </Grid.RowDefinitions>
-                
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <TextBlock
+                      Style="{StaticResource MaterialDesignBody2TextBlock}"
+                      Text="Auto Play" />    
+                    <ToggleButton 
+                      IsChecked="True" Click="ChangeAutoPlay" Name="AutoPlayToggleBtn"
+                      Style="{StaticResource MaterialDesignSwitchDarkToggleButton}"
+                      ToolTip="MaterialDesignSwitchDarkToggleButton" />
+                </StackPanel>
                 <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="0">
                     <TextBlock
           Style="{StaticResource MaterialDesignHeadline6TextBlock}"
@@ -181,6 +189,8 @@
                 </StackPanel>
                 
                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="0">
+                    
+                    
                     <Button
                     Command="ApplicationCommands.Save" Height="30" Width="30"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
@@ -294,6 +304,12 @@
                     </Button>
 
                     <!-- <Separator /> -->
+                    <ComboBox
+                        x:Name="OutlinedComboBox"
+                        Width="150" 
+                        materialDesign:HintAssist.Hint="Recent file"
+                        ItemsSource="{Binding}"
+                        Style="{StaticResource MaterialDesignOutlinedComboBox}" />
                 </ToolBar>
 
                 <StackPanel Grid.Row="1" Name="StackpannelMedia">
