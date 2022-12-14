@@ -24,8 +24,9 @@
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
     </Window.CommandBindings>
     <Window.Resources>
-
+        
         <ResourceDictionary>
+         
             <Style x:Key="ScrollThumbs" TargetType="{x:Type Thumb}">
                 <Setter Property="Template">
                     <Setter.Value>
@@ -47,9 +48,6 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-
-
-
             <Style x:Key="{x:Type ScrollBar}" TargetType="{x:Type ScrollBar}">
                 <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
                 <Setter Property="Foreground" Value="DarkGray"/>
@@ -107,6 +105,9 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+          
+
+
         </ResourceDictionary>
     </Window.Resources>
     <Grid Margin="5">
@@ -211,10 +212,12 @@
                          Click="AddFiles"
                       
                       IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
-                      Style="{StaticResource MaterialDesignIconButton}"
+                      Style="{StaticResource MaterialDesignFlatDarkBgButton}"
+                      
                       ToolTip="Add all media files">
                         <materialDesign:PackIcon
                     Kind="FolderOpen" />
+                      
                     </Button>
                     <Button
                     Command="ApplicationCommands.Open" 
@@ -255,6 +258,7 @@
                         <TextBlock Text="00:00" 
                        Foreground="White"
                    Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                
                     Panel.ZIndex="1" Name="textSeeking" Canvas.Left="40" Canvas.Top="-25">
                             <TextBlock.Effect>
                                 <DropShadowEffect
@@ -271,7 +275,8 @@
 
                         <Slider x:Name="sliProgress" Grid.Row="2" 
                             Minimum="0"   Thumb.DragStarted="sliProgress_DragStarted" Thumb.DragCompleted="sliProgress_DragCompleted"
-                            Value="0" ValueChanged="sliProgress_ValueChanged"  >
+                            Value="0" ValueChanged="sliProgress_ValueChanged" 
+                                >
                             <Slider.LayoutTransform>
                                 <TransformGroup>
                                     <ScaleTransform ScaleY="0.5" ScaleX="0.5"/>
