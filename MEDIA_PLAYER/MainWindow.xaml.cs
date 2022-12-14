@@ -29,7 +29,7 @@ namespace MEDIA_PLAYER
         private int shuffleIndex = -1;
         private List<int> _shuffleList = new List<int>();
         private List<int> _prevList = new List<int>();
-        private List<string> _prevListName = new List<string>();
+        private ObservableCollection<string> _prevListName = new ObservableCollection<string>();
         private List<string> _prevListFullPathName = new List<string>();
         private bool autoplay = true;
 
