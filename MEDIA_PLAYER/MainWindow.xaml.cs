@@ -20,6 +20,7 @@ namespace MEDIA_PLAYER
 {
     public partial class MainWindow : Window
     {
+        private bool mediaPlayerIsRepeat = false;
         private bool mediaPlayerIsPlaying = false;
         private bool userIsDraggingSlider = false;
         private string _currentPlaying = string.Empty;
@@ -193,10 +194,7 @@ namespace MEDIA_PLAYER
             mediaPlayer.ScrubbingEnabled = true;
             mediaPlayer.Open(new Uri(sFullname_Path_of_Video));
             mediaPlayer.ScrubbingEnabled = true;
-
-            mediaPlayer.Play();
-            mediaPlayer.Pause();
-           
+            mediaPlayer.Position = TimeSpan.FromSeconds(0);
             _add.File_Path=sFullname_Path_of_Video;
             DrawingVisual drawingVisual = new DrawingVisual();
             DrawingContext drawingContext = drawingVisual.RenderOpen();
@@ -480,6 +478,20 @@ namespace MEDIA_PLAYER
             if (index != -1)
             {
                 _mediaList.RemoveAt(index);
+            }
+        }
+
+        private void RepeatMode(object sender, RoutedEventArgs e)
+        {
+          
+            mediaPlayerIsRepeat = !mediaPlayerIsRepeat;
+          if (mediaPlayerIsRepeat == false)
+            {
+                RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.RepeatOff;
+            }
+            else
+            {
+                RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Repeat;
             }
         }
     }

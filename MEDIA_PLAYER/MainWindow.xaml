@@ -22,6 +22,7 @@
         <CommandBinding Command="MediaCommands.Play" CanExecute="Play_CanExecute" Executed="Play_Executed" />
         <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
+        
     </Window.CommandBindings>
     <Window.Resources>
         
@@ -136,11 +137,18 @@
                     <RowDefinition Height="*"></RowDefinition>
                     <RowDefinition Height="30"></RowDefinition>
                 </Grid.RowDefinitions>
-
-                <ProgressBar Grid.Row="0" Visibility="Collapsed" x:Name="progressbarLoadmedia"
+                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="0">
+                    <TextBlock
+          Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+          Text="Play List" />
+                </StackPanel>
+                <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    
+                </StackPanel>
+                <ProgressBar Grid.Row="1" Visibility="Collapsed" x:Name="progressbarLoadmedia"
                           IsIndeterminate="True" 
                           Style="{StaticResource MaterialDesignCircularProgressBar}"
-                Value="35" />
+                Value="35" Margin="140,5,140,5" Grid.RowSpan="2" />
                 <ListView x:Name="PlayListView" Grid.Row="1" >
 
                     <!-- and here's another -->
@@ -174,19 +182,19 @@
                               Text="{Binding DurationString}" />
 
                                         </StackPanel>
-                                        
-                                            <materialDesign:PopupBox 
+
+                                        <materialDesign:PopupBox 
             Padding="2,0,2,0" 
             HorizontalAlignment="Right"  
             Style="{DynamicResource MaterialDesignToolForegroundPopupBox}">
-                                                <StackPanel>
-                                                    <Button
+                                            <StackPanel>
+                                                <Button
                 Content="Delete" Click="DeleteMovie"/>
-                                                    <Button
+                                                <Button
                 Content="Options" />
-                                                </StackPanel>
-                                            </materialDesign:PopupBox>
-                                       
+                                            </StackPanel>
+                                        </materialDesign:PopupBox>
+
                                     </StackPanel>
                                 </Grid>
 
@@ -289,7 +297,7 @@
                     </StatusBarItem>
 
                 </StatusBar>
-                <StatusBar Grid.Row="3" >
+                <StatusBar Grid.Row="3" VerticalAlignment="Center" >
                     <Button
                   Command="MediaCommands.Play" 
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
@@ -299,7 +307,7 @@
                     Kind="Play" />
                     </Button>
                     <Button
-                  Command="MediaCommands.Stop" Height="30"
+                  Command="MediaCommands.Stop" Height="30"  Width="30"  
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                   ToolTip="Click to stop media">
@@ -307,12 +315,20 @@
                     Kind="Stop" />
                     </Button>
                     <Button
-                  Command="MediaCommands.Pause" Height="30"
+                  Command="MediaCommands.Pause" Height="30" Width="30"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                   ToolTip="Click to pause media">
                         <materialDesign:PackIcon
                     Kind="Pause" />
+                    </Button>
+                    <Button x:Name="RepeatBtn"
+                  Width="30" Height="30" Click="RepeatMode"
+                  IsEnabled="True" 
+                  Style="{StaticResource MaterialDesignIconButton}"
+                  ToolTip="Click to pause media">
+                  <materialDesign:PackIcon x:Name="RepeatIcon"
+                    Kind="Repeat"/>
                     </Button>
                     <StatusBarItem Grid.Column="2">
                         <ProgressBar Name="pbVolume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=mePlayer, Path=Volume}" />

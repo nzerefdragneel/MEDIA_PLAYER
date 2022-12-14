@@ -10,6 +10,7 @@ namespace MEDIA_PLAYER
        
         public int Order { get; set; }
         public string File_Path { get; set; }
+
         public double Duration_length { get; set; }
         public ImageSource imageReview { get; set; }
         public string Description
@@ -18,6 +19,7 @@ namespace MEDIA_PLAYER
             {
                 return Path.GetFileNameWithoutExtension(File_Path);
             }
+            
         }
         public string DurationString
         {
