@@ -11,20 +11,19 @@ using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using System.Collections.ObjectModel;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Path = System.IO.Path;
-using System.Linq;
 using System.Windows.Controls;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
-using System.Numerics;
-using static System.Net.Mime.MediaTypeNames;
 using Application = System.Windows.Application;
-using MaterialDesignThemes.Wpf;
-using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
+using System.ComponentModel;
 
 namespace MEDIA_PLAYER
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
         private int mediaPlayerIsRepeat = -1;//-1:no repeat;0:repeat:1 ;1:repeat all
         private bool mediaPlayerIsShuffling=false;
         private int shuffleIndex = -1;
@@ -36,8 +35,11 @@ namespace MEDIA_PLAYER
         private int _currentPlayingIndex = 0;
 
         Random rnd = new Random();
-        
+
+        private string playlistPath = string.Empty;
+        private bool playlistIsChange = false;
         ObservableCollection<Media> _mediaList = new ObservableCollection<Media>();
+       
         Media _add=new Media();
         MediaPlayer _Slider = new MediaPlayer();
         double nowPosion = 0;
@@ -588,8 +590,10 @@ namespace MEDIA_PLAYER
             }
         }
 
+        //sửa cái này:v
         private void Save_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
+            //playlistIsChange
             if (_mediaList.Count != 0)
             {
                 e.CanExecute = true;
@@ -598,6 +602,29 @@ namespace MEDIA_PLAYER
 
         private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            if (playlistPath == string.Empty)
+            {
+                var dialog = new SaveFileDialog();
+                dialog.DefaultExt = "Plt";
+                dialog.Filter = "Playlist (*.Plt)|*.Plt";
+
+                if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+                {
+                    return;
+                }
+                playlistPath = dialog.FileName;
+                Nameplaylist.Text = Path.GetFileNameWithoutExtension(playlistPath);
+            }
+            StreamWriter output;
+            output = new StreamWriter(playlistPath);
+            StringBuilder writeFile = new StringBuilder();
+            for (int i=0;i< _mediaList.Count;i++)
+            {
+                writeFile.AppendLine(_mediaList[i].File_Path);
+            }
+            Debug.WriteLine(writeFile.ToString());
+            output.WriteLine(writeFile.ToString());
+            output.Close();
 
         }
 
@@ -658,6 +685,64 @@ namespace MEDIA_PLAYER
             {
                 ShuffleIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.ShuffleDisabled;
             }
+        }
+
+        private void Open_Playlist(object sender, RoutedEventArgs e)
+        {
+            //lưu lại mấy thằng cũ ở đây:v
+           
+            var dialog = new OpenFileDialog();
+            dialog.Filter = "Playlist (*.Plt)|*.Plt";
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            _mediaList.Clear();
+            shuffleIndex = -1;
+            _shuffleList = new List<int>();
+            mediaPlayerIsPlaying = false;
+            userIsDraggingSlider = false;
+            _currentPlaying = string.Empty;
+            _currentPlayingIndex = 0;
+          
+            playlistPath = dialog.FileName;
+            Nameplaylist.Text = Path.GetFileNameWithoutExtension(playlistPath);
+            StreamReader input;
+            input = new StreamReader(playlistPath);
+            progressbarLoadmedia.Visibility = Visibility.Visible;
+            string path = "";
+            while ((path = input.ReadLine()) != null)
+            {
+                if (path != "")
+                {
+                    Debug.WriteLine("current+" + path);
+                    if (IsVideoFile(path))
+                    {
+                        add_Video_Image(path);
+                        AudiaPlayer.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        add_Audio_image(path);
+                    }
+                    if (mePlayer.Source == null)
+                    {
+                        _currentPlaying = path;
+                        Debug.WriteLine("path", _currentPlaying);
+                        mePlayer.Source = new Uri(_currentPlaying);
+                        mePlayer.Position = TimeSpan.FromSeconds(0);
+                        Debug.WriteLine("ok");
+                        mePlayer.MediaFailed += (o, args) =>
+                        {
+                            MessageBox.Show("Media Failed!!");
+                        };
+                    }
+                }
+            }
+            Debug.WriteLine(_mediaList.Count);
+            input.Close();
+            progressbarLoadmedia.Visibility = Visibility.Collapsed;
         }
     }
 }

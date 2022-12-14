@@ -32,11 +32,12 @@
         <KeyBinding Key="C"
               Modifiers="Control" 
               Command="MediaCommands.Stop" />
+        <KeyBinding Key="S"
+              Modifiers="Control" 
+              Command="ApplicationCommands.Save" />
         <KeyBinding Key="Right"
-              
               Command="MediaCommands.NextTrack" />
         <KeyBinding Key="Left"
-             
               Command="MediaCommands.PreviousTrack" />
     </Window.InputBindings>
     <Window.CommandBindings>
@@ -175,17 +176,29 @@
                     <TextBlock
           Style="{StaticResource MaterialDesignHeadline6TextBlock}"
           Text="Play List" />
+                    <TextBlock x:Name="Nameplaylist" ></TextBlock>
                    
                 </StackPanel>
                 
-                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="0">
+                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="0">
                     <Button
-                    Command="ApplicationCommands.Open" 
+                    Command="ApplicationCommands.Save" Height="30" Width="30"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                   ToolTip="Add media file">
                         <materialDesign:PackIcon
                     Kind="ContentSave" />
+                        
+                    </Button>
+                    <Button Margin="10 0 10 0"
+                         Height="30" Width="30"
+                    Click="Open_Playlist"
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}"
+                  ToolTip="Add media file">
+                        <materialDesign:PackIcon
+                    Kind="MovieOpenPlayOutline" />
+
                     </Button>
                 </StackPanel>
                 <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Right">

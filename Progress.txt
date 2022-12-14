@@ -1,4 +1,7 @@
-
+-autoplay
+-previous
+-repeat and shuffle
+-save as
 
 ->save and load playlist
 -> recent file
