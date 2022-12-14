@@ -29,14 +29,14 @@ namespace MEDIA_PLAYER
         private bool mediaPlayerIsShuffling=false;
         private int shuffleIndex = -1;
         private List<int> _shuffleList = new List<int>();
+
         private bool mediaPlayerIsPlaying = false;
         private bool userIsDraggingSlider = false;
         private string _currentPlaying = string.Empty;
         private int _currentPlayingIndex = 0;
-        private int _nextPlayingIndex = -1;
-        private int _prevPlayingIndex = -1;
+
         Random rnd = new Random();
-        Playlist _playList = new Playlist();
+        
         ObservableCollection<Media> _mediaList = new ObservableCollection<Media>();
         Media _add=new Media();
         MediaPlayer _Slider = new MediaPlayer();
@@ -158,6 +158,7 @@ namespace MEDIA_PLAYER
                 if (IsVideoFile(path))
                 {
                     add_Video_Image(path);
+                    AudiaPlayer.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
@@ -183,22 +184,31 @@ namespace MEDIA_PLAYER
         private void ChangeCurrentPlay(int current)
         {
 
-            _currentPlaying = _mediaList[current].File_Path;
-            if (IsAudioFile(_currentPlaying))
+           
+            if (File.Exists(_currentPlaying))
             {
-                AudiaPlayer.Visibility = Visibility.Visible;
+                _currentPlaying = _mediaList[current].File_Path;
+                if (IsAudioFile(_currentPlaying))
+                {
+                    AudiaPlayer.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    AudiaPlayer.Visibility = Visibility.Collapsed;
+                }
+                _currentPlayingIndex = current;
+                mePlayer.Source = new Uri(_currentPlaying);
+                mePlayer.Position = TimeSpan.FromSeconds(_mediaList[current].NowDurationLength);
+                if (mediaPlayerIsPlaying == true) mePlayer.Play();
+                else mePlayer.Pause();
+                sliProgress.Value = _mediaList[current].NowDurationLength;
+                lblProgressStatus.Text = _mediaList[current].NowDuration;
             }
             else
             {
-                AudiaPlayer.Visibility = Visibility.Collapsed;
+                MessageBox.Show("Media not found\n Remove it", "notification");
+                _mediaList.RemoveAt(current);
             }
-            _currentPlayingIndex = current;
-            mePlayer.Source = new Uri(_currentPlaying);
-            mePlayer.Position = TimeSpan.FromSeconds(_mediaList[current].NowDurationLength);
-            if (mediaPlayerIsPlaying == true) mePlayer.Play();
-            else mePlayer.Pause();
-            sliProgress.Value = _mediaList[current].NowDurationLength;
-            lblProgressStatus.Text = _mediaList[current].NowDuration;
             
         }
         private void Repeat()
@@ -211,50 +221,7 @@ namespace MEDIA_PLAYER
             lblProgressStatus.Text = _mediaList[_currentPlayingIndex].NowDuration;
 
         }
-        private void mediaplayer_OpenMedia(object sender, EventArgs e)
-        {
-            //----------------< mediaplayer_OpenMedia() >----------------
-            //*create mediaplayer in memory and jump to position
-            //< draw video_image >
-            
-            MediaPlayer mediaPlayer = sender as MediaPlayer;
-          
-                DrawingVisual drawingVisual = new DrawingVisual();
-                DrawingContext drawingContext = drawingVisual.RenderOpen();
-                drawingContext.DrawVideo(mediaPlayer, new Rect(0, 0, 160, 100));
-                drawingContext.Close();
-                double dpiX = 1 / 200;
-                double dpiY = 1 / 200;
-                RenderTargetBitmap bmp = new RenderTargetBitmap(160, 100, dpiX, dpiY, PixelFormats.Pbgra32);
-                bmp.Render(drawingVisual);
-                _add.imageReview = bmp;
-                /*
-                MemoryStream stream = new MemoryStream();
-
-                BitmapEncoder encoder = new BmpBitmapEncoder();
-                encoder.Frames.Add(BitmapFrame.Create(bmp));
-                encoder.Save(stream);
-                Bitmap bitmap = new Bitmap(stream);*/
-                //ImageSource bit = bmp;
-                //var bitmap = new BitmapImage(new Uri("images/play.png", UriKind.Relative));
-                //</ draw video_image >
-                //bit = bitmap;
-                ////< set Image >
-                //Image newImage = new Image();
-                //newImage.Source = bit;
-                //newImage.Stretch = Stretch.Uniform;
-                //newImage.Height = 100;
-                //</ set Image >
-
-                //< add >
-                //   image.Source = bmp;
-
-            
-
-            
-           
-            //----------------< mediaplayer_OpenMedia() >----------------
-        }
+        
         private void add_Audio_image(string path)
         {
             _add = new Media();
@@ -357,7 +324,6 @@ namespace MEDIA_PLAYER
         private void sliProgress_DragStarted(object sender, DragStartedEventArgs e)
         {
             userIsDraggingSlider = true;
-            
             CanvasSeeking.Visibility = Visibility.Visible;
             if (IsAudioFile(_currentPlaying)) imageSeeking.Visibility = Visibility.Collapsed;
             else imageSeeking.Visibility = Visibility.Visible;
@@ -512,9 +478,9 @@ namespace MEDIA_PLAYER
                     add_Video_Image(d);
                     if (mePlayer.Source == null)
                     {
+                        AudiaPlayer.Visibility = Visibility.Collapsed;
                         _currentPlaying = d;
                         mePlayer.Source = new Uri(d);
-                       
                         mePlayer.MediaFailed += (o, args) =>
                         {
                             MessageBox.Show("Media Failed!!");
