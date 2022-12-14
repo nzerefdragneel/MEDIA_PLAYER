@@ -17,8 +17,29 @@
         Loaded="Window_Loaded"
         >
 
+
+    <Window.InputBindings>
+        <KeyBinding Key="B"
+              Modifiers="Control" 
+              Command="ApplicationCommands.Open" />
+        <KeyBinding Key="X"
+              Modifiers="Control" 
+              Command="MediaCommands.Play" />
+        <KeyBinding Key="Z"
+              Modifiers="Control" 
+              Command="MediaCommands.Pause" />
+        <KeyBinding Key="C"
+              Modifiers="Control" 
+              Command="MediaCommands.Stop" />
+        <KeyBinding Key="Right"
+              
+              Command="MediaCommands.NextTrack" />
+        <KeyBinding Key="Left"
+             
+              Command="MediaCommands.PreviousTrack" />
+    </Window.InputBindings>
     <Window.CommandBindings>
-        <CommandBinding Command="ApplicationCommands.Open"  CanExecute="Open_CanExecute" Executed="Open_Executed" />
+        <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
         <CommandBinding Command="MediaCommands.Play" CanExecute="Play_CanExecute" Executed="Play_Executed" />
         <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
@@ -122,6 +143,16 @@
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="100"></ColumnDefinition>
             </Grid.ColumnDefinitions>
+            <StackPanel Width="80" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <ComboBox Text="để tạm"  IsReadOnly="True" >
+                    <ComboBoxItem>Play: Ctrl+X</ComboBoxItem>
+                    <ComboBoxItem>Stop: Ctrl+C</ComboBoxItem>
+                    <ComboBoxItem>Pause: Ctrl+Z</ComboBoxItem>
+                    <ComboBoxItem>Open: Ctrl+B</ComboBoxItem>
+                    <ComboBoxItem>Next: right</ComboBoxItem>
+                    <ComboBoxItem>Prev: left</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
             <Button Grid.Column="1" Name="HiddenButton" Click="HiddenBtn"
       Width="{DynamicResource ButtonWidth}"
       Content="Hide"
