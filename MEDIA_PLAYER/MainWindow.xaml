@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MEDIA_PLAYER"
         mc:Ignorable="d"
+        xmlns:gif="https://github.com/XamlAnimatedGif/XamlAnimatedGif"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
          TextElement.Foreground="{DynamicResource MaterialDesignBody}"
          TextElement.FontWeight="Regular"
@@ -282,8 +283,9 @@
                 </ToolBar>
 
                 <StackPanel Grid.Row="1" Name="StackpannelMedia">
+                    <Image  Name="AudiaPlayer"
+                        gif:AnimationBehavior.SourceUri="images/mediaplay.gif" />
                     <MediaElement Name="mePlayer" MediaOpened="player_MediaOpened" MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
-
                     </MediaElement>
 
                 </StackPanel>
