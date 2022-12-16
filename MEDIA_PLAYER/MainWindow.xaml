@@ -5,29 +5,121 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MEDIA_PLAYER"
         mc:Ignorable="d"
+        xmlns:gif="https://github.com/XamlAnimatedGif/XamlAnimatedGif"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+         TextElement.Foreground="{DynamicResource TextBrush}"
          TextElement.FontWeight="Regular"
          TextElement.FontSize="13"
          TextOptions.TextFormattingMode="Ideal"
          TextOptions.TextRenderingMode="Auto"
-         Background="{DynamicResource MaterialDesignPaper}"
+          materialDesign:ButtonAssist.CornerRadius="50"
+         Background="{DynamicResource PrimaryForegroundBrush}"
+         Foreground="{DynamicResource PrimaryMidBrush}"
          FontFamily="{DynamicResource MaterialDesignFont}"
-            Title="MainWindow" Height="600" Width="800"
+         Title="Media Player" Height="700" Width="1000"
         Loaded="Window_Loaded"
         >
 
+
+    <Window.InputBindings>
+        <KeyBinding Key="O" 
+              Modifiers="Control" 
+              Command="ApplicationCommands.Open" />
+        <KeyBinding Key="Space"
+             
+              Command="MediaCommands.Play" />
+        <KeyBinding Key="Space"
+              Modifiers="Control" 
+              Command="MediaCommands.Pause" />
+        <KeyBinding Key="P"
+              Modifiers="Control" 
+              Command="MediaCommands.Stop" />
+        <KeyBinding Key="S"
+              Modifiers="Control" 
+              Command="ApplicationCommands.Save" />
+        <KeyBinding Key="Right"
+              Modifiers="Control"
+              Command="MediaCommands.NextTrack" />
+        <KeyBinding Key="Left"
+                     Modifiers="Control"
+              Command="MediaCommands.PreviousTrack" />
+        <KeyBinding Key="Right"
+                     
+              Command="MediaCommands.FastForward" />
+        <KeyBinding Key="Left"
+                     
+              Command="MediaCommands.Rewind" />
+        <KeyBinding Key="s"
+                     
+              Command="MediaCommands.Record" />
+
+    </Window.InputBindings>
     <Window.CommandBindings>
+
         <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
         <CommandBinding Command="MediaCommands.Play" CanExecute="Play_CanExecute" Executed="Play_Executed" />
         <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
-        
+        <CommandBinding Command="MediaCommands.NextTrack" CanExecute="Next_CanExecute" Executed="Next_Executed" />
+        <CommandBinding Command="MediaCommands.PreviousTrack" CanExecute="Prev_CanExecute" Executed="Prev_Executed" />
+        <CommandBinding Command="MediaCommands.FastForward" CanExecute="Forward_CanExecute" Executed="Forward_Executed" />
+        <CommandBinding Command="MediaCommands.Rewind" CanExecute="Replay_CanExecute" Executed="Replay_Executed" />
+        <CommandBinding Command="MediaCommands.Record" CanExecute="Record_CanExecute" Executed="Record_Executed" />
+
+        <CommandBinding Command="ApplicationCommands.Save"  CanExecute="Save_CanExecute" Executed="Save_Executed" />
     </Window.CommandBindings>
     <Window.Resources>
-        
+
         <ResourceDictionary>
-         
+            <Style x:Key="MyComboBoxItem" TargetType="{x:Type ComboBoxItem}">
+                
+                <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            
+            </Style>
+            <Style x:Key="MyComboBox" TargetType="{x:Type ComboBox}">
+                <Setter Property="ItemContainerStyle" Value="{StaticResource MyComboBoxItem}"/>
+                <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                
+
+            </Style>
+            <Style x:Key="CardStyle1" TargetType="{x:Type materialDesign:Card}">
+                <Setter Property="Background" Value="{DynamicResource PrimaryCardBrush}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type materialDesign:Card}">
+                            <Grid Margin="2" Background="Transparent">
+                                <AdornerDecorator>
+                                    <AdornerDecorator.CacheMode>
+                                        <BitmapCache EnableClearType="True" SnapsToDevicePixels="True"/>
+                                    </AdornerDecorator.CacheMode>
+                                    <Border Effect="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                    CornerRadius="{TemplateBinding UniformCornerRadius}">
+                                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" 
+                        x:Name="PART_ClipBorder"
+                        Clip="{TemplateBinding ContentClip}" />
+                                    </Border>
+                                </AdornerDecorator>
+                                <ContentPresenter 
+            x:Name="ContentPresenter"                    
+            Margin="{TemplateBinding Padding}"
+            Clip="{TemplateBinding ContentClip}"
+            Content="{TemplateBinding ContentControl.Content}" 
+            ContentTemplate="{TemplateBinding ContentControl.ContentTemplate}" 
+            ContentTemplateSelector="{TemplateBinding ContentControl.ContentTemplateSelector}" 
+            ContentStringFormat="{TemplateBinding ContentControl.ContentStringFormat}">
+                                </ContentPresenter>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="PART_ClipBorder" Property="Background" Value="	#aaaaaa" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <Style x:Key="ScrollThumbs" TargetType="{x:Type Thumb}">
                 <Setter Property="Template">
                     <Setter.Value>
@@ -106,147 +198,397 @@
                     </Setter.Value>
                 </Setter>
             </Style>
-          
+            <Style x:Key="SliderRepeatButton" TargetType="RepeatButton">
+                <Setter Property="SnapsToDevicePixels" Value="true" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Setter Property="IsTabStop" Value="false" />
+                <Setter Property="Focusable" Value="false" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RepeatButton">
+                            <Border  CornerRadius="0 3 3 0"  BorderBrush="#706f6f" Background="#706f6f" Height="10"/>
 
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
 
+            </Style>
+            <Style x:Key="SliderRepeatButton1" TargetType="RepeatButton">
+                <Setter Property="SnapsToDevicePixels" Value="true" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RepeatButton">
+                            <Border CornerRadius="3" SnapsToDevicePixels="True" Background="White"  BorderBrush="White" Height="10"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+
+                </Setter>
+            </Style>
+            <Style x:Key="SliderRepeatButton2" TargetType="RepeatButton">
+                <Setter Property="SnapsToDevicePixels" Value="true" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="RepeatButton">
+                            <Border CornerRadius="3 0 0 3" SnapsToDevicePixels="True" Background="#1db954"  BorderBrush="#1db954" Height="10"/>
+                        </ControlTemplate>
+                    </Setter.Value>
+
+                </Setter>
+            </Style>
+            <Style x:Key="SliderThumb" TargetType="Thumb">
+                <Setter Property="SnapsToDevicePixels" Value="true" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Thumb">
+                            <Ellipse Height="24" Width="24" Fill="White"></Ellipse>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <ControlTemplate x:Key="Slider"  TargetType="Slider">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Track Grid.Row="1" x:Name="PART_Track"   >
+                        <Track.DecreaseRepeatButton>
+                            <RepeatButton Style="{StaticResource SliderRepeatButton1}"  Command="Slider.DecreaseLarge" />
+                        </Track.DecreaseRepeatButton>
+
+                        <Track.IncreaseRepeatButton>
+                            <RepeatButton Style="{StaticResource SliderRepeatButton}" Command="Slider.IncreaseLarge" />
+                        </Track.IncreaseRepeatButton>
+                    </Track>
+                </Grid>
+            </ControlTemplate>
+            <ControlTemplate x:Key="SliderMouseOn"  TargetType="Slider">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" MinHeight="{TemplateBinding MinHeight}" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Track Grid.Row="1" x:Name="PART_Track"   >
+                        <Track.DecreaseRepeatButton>
+                            <RepeatButton Style="{StaticResource SliderRepeatButton2}"  Command="Slider.DecreaseLarge" />
+                        </Track.DecreaseRepeatButton>
+                        <Track.Thumb>
+                            <Thumb Style="{StaticResource SliderThumb}"  />
+                        </Track.Thumb>
+                        <Track.IncreaseRepeatButton>
+                            <RepeatButton Style="{StaticResource SliderRepeatButton}" Command="Slider.IncreaseLarge" />
+                        </Track.IncreaseRepeatButton>
+                    </Track>
+                </Grid>
+            </ControlTemplate>
+            <Style x:Key="Horizontal_Slider" TargetType="Slider">
+                <Setter Property="Focusable" Value="False"/>
+                <Setter Property="SnapsToDevicePixels" Value="true" />
+                <Setter Property="OverridesDefaultStyle" Value="true" />
+                <Style.Triggers>
+                    <Trigger  Property="IsMouseOver" Value="False">
+                        <Setter Property="MinHeight" Value="41" />
+
+                        <Setter Property="Template" Value="{StaticResource Slider}" />
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="MinHeight" Value="41" />
+
+                        <Setter Property="Template" Value="{StaticResource SliderMouseOn}" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
         </ResourceDictionary>
     </Window.Resources>
-    <Grid Margin="5">
+    <Grid Margin="0 0 0 0" Background="{DynamicResource PrimaryLightBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="30"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0">
+        <Grid Grid.Row="0"
+               >
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="100"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="1" Name="HiddenButton" Click="HiddenBtn"
-      Width="{DynamicResource ButtonWidth}"
-      Content="Hide"
+            <StackPanel Width="80" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <ComboBox Style="{StaticResource MyComboBox}" Text="để tạm"  IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged"  >
+                    
+                    <ComboBoxItem>Play: Ctrl+X</ComboBoxItem>
+                    <ComboBoxItem>Stop: Ctrl+C</ComboBoxItem>
+                    <ComboBoxItem>Pause: Ctrl+Z</ComboBoxItem>
+                    <ComboBoxItem>Open: Ctrl+B</ComboBoxItem>
+                    <ComboBoxItem>Next: right</ComboBoxItem>
+                    <ComboBoxItem>Prev: left</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+           
+                <Button Name="HiddenButton"   Grid.Column="1" Click="HiddenBtn"
+                    Padding="0 0 0 0"
+                    HorizontalAlignment="Right"
+                    
+      Width="30"
+      Background="Transparent"
+      BorderThickness="0"
       IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
-      Style="{StaticResource MaterialDesignRaisedSecondaryDarkButton}"
-      ToolTip="Resource name: MaterialDesignRaisedSecondaryDarkButton" />
+    
+      ToolTip="Show" >
+                
+                    <materialDesign:PackIcon x:Name="ShowHideDisplay"
+                    Kind="ChevronRight" 
+                                       
+                       Background="{DynamicResource PrimaryLightBrush}"
+                       Foreground="{DynamicResource PrimaryLightForegroundBrush}"
+                    Height="29" Width="29" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              
+            </Button>
+           
         </Grid>
 
-        <DockPanel Grid.Row="1">
+        <DockPanel Grid.Row="1" >
 
-            <Grid x:Name="PlayListStackPannel" Width="300" DockPanel.Dock="Right" Visibility="Visible">
+            <Grid x:Name="PlayListStackPannel" Width="350" DockPanel.Dock="Right" Visibility="Visible"
+               >
+
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
-                    <RowDefinition Height="30"></RowDefinition>
+                    <RowDefinition Height="30" >
+
+                    </RowDefinition>
                 </Grid.RowDefinitions>
-                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="0">
+                <StackPanel Grid.Row="2" Orientation="Horizontal"    
+                          
+                            HorizontalAlignment="Center" VerticalAlignment="Center"  >
+
                     <TextBlock
-          Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                     Foreground="{DynamicResource PrimaryLightForegroundBrush}"  
+                      
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                      Text="Auto Play" />
+                    <ToggleButton 
+                        Margin="10 0 0 0"
+                      
+                      IsChecked="True" Click="ChangeAutoPlay" x:Name="AutoPlayToggleBtn"
+                        Foreground="{DynamicResource PrimaryDarkBrush}"
+                                Background="{DynamicResource PrimaryMidBrush}"
+                      ToolTip="MaterialDesignSwitchDarkToggleButton" >
+
+                    </ToggleButton>
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="0"
+                          >
+                    <TextBlock
+           Foreground="{DynamicResource PrimaryLightForegroundBrush}"
+       
           Text="Play List" />
+                    <TextBlock x:Name="Nameplaylist" ></TextBlock>
+
+                </StackPanel>
+
+                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="0">
+
+
+                    <Button
+                    Command="ApplicationCommands.Save" Height="30" Width="30"
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                 Background="Transparent"
+                BorderThickness="0"
+                              Style="{StaticResource MaterialDesignIconButton}"
+                        BorderBrush="Transparent"
+                        
+                  ToolTip="Add media file">
+                        <materialDesign:PackIcon
+                              Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
+                      
+                    Kind="ContentSave" />
+
+                    </Button>
+                    <Button Margin="10 0 10 0"
+                         Height="30" Width="30"
+                    Click="Open_Playlist"
+                                 BorderThickness="0"
+                       
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                   Background="Transparent"
+                    Style="{StaticResource MaterialDesignIconButton}"
+                  ToolTip="Add media file">
+                        <materialDesign:PackIcon
+                            
+                            Foreground="{DynamicResource PrimaryLightForegroundBrush}"
+                    Kind="MovieOpenPlayOutline" />
+
+                    </Button>
                 </StackPanel>
                 <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    
+
                 </StackPanel>
                 <ProgressBar Grid.Row="1" Visibility="Collapsed" x:Name="progressbarLoadmedia"
                           IsIndeterminate="True" 
                           Style="{StaticResource MaterialDesignCircularProgressBar}"
                 Value="35" Margin="140,5,140,5" Grid.RowSpan="2" />
-                <ListView x:Name="PlayListView" Grid.Row="1" >
+                <Border Grid.Row="1" BorderBrush="{DynamicResource PrimaryDarkBrush}" BorderThickness="2 0 0 0">
+                    <ListView x:Name="PlayListView"  >
 
-                    <!-- and here's another -->
-                    <ListView.ItemTemplate >
+                        <ListView.ItemTemplate >
 
-                        <DataTemplate>
-                            <!--    <materialDesign:Card 
-          Padding="0"
-          Background="#1a237e"
-          Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}">-->
-                            <StackPanel Mouse.MouseDown="ChooseToPlay">
+                            <DataTemplate>
+                                <Border  CornerRadius="5" 
+                             
+                                          >
+                                    <materialDesign:Card Style="{DynamicResource CardStyle1}"
+                                          Padding="0"
+                                            Margin="0"
+                                          Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}">
+                                        <StackPanel Mouse.MouseDown="ChooseToPlay"
+                                            Background="Transparent"
+                                            Width="320">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="140" ></ColumnDefinition>
+                                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                                </Grid.ColumnDefinitions>
+                                                <Border CornerRadius="5" 
+                                                Padding="2" >
+                                                    <Image Source="{Binding imageReview}"></Image>
+                                                </Border>
+                                                <StackPanel Grid.Column="1" 
+                                                    Orientation="Horizontal" 
+                                                    HorizontalAlignment="Left"  
+                                                    VerticalAlignment="Center">
 
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="150"></ColumnDefinition>
-                                        <ColumnDefinition Width="*"></ColumnDefinition>
-                                    </Grid.ColumnDefinitions>
-                                    <Image Source="{Binding imageReview}" Margin="2" Height="100" Width="150"></Image>
-                                    <StackPanel Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center">
-
-                                        <TextBlock TextWrapping="WrapWithOverflow" Width="100" Margin="2"
-                                        Style="{StaticResource MaterialDesignButtonTextBlock}"
-                                  Text="{Binding Description}" />
-                                        <StackPanel Orientation="Horizontal">
-                                            <!--  <TextBlock
-                              Style="{StaticResource MaterialDesignOverlineTextBlock}"
-                              Text="{Binding NowDuration}" />
-                                                <TextBlock Text=":"  Style="{StaticResource MaterialDesignOverlineTextBlock}"></TextBlock>-->
-                                            <TextBlock
-                              Style="{StaticResource MaterialDesignOverlineTextBlock}"
-                              Text="{Binding DurationString}" />
-
+                                                    <StackPanel Orientation="Vertical" 
+                                                        HorizontalAlignment="Left"  
+                                                        VerticalAlignment="Center" 
+                                                        Width="150">
+                                                        <TextBlock TextWrapping="WrapWithOverflow"  
+                                                         Foreground="{DynamicResource PrimaryCardForegroundBrush}"
+                                                           FontSize="15"
+                                                           Text="{Binding Description}"
+                                                           />
+                                                        <TextBlock Foreground="{DynamicResource PrimaryCardForegroundBrush}"
+                                                           Text="{Binding DurationString}"
+                                                          />
+                                                    </StackPanel>
+                                                    <materialDesign:PopupBox VerticalAlignment="Center"
+                                                                     HorizontalAlignment="Right"  
+                                                                     Style="{DynamicResource MaterialDesignToolForegroundPopupBox}">
+                                                        <StackPanel>
+                                                            <Button Content="Delete" 
+                                                                Click="DeleteMovie"/>
+                                                            <Button Content="Options" />
+                                                        </StackPanel>
+                                                    </materialDesign:PopupBox>
+                                                </StackPanel>
+                                            </Grid>
                                         </StackPanel>
 
-                                        <materialDesign:PopupBox 
-            Padding="2,0,2,0" 
-            HorizontalAlignment="Right"  
-            Style="{DynamicResource MaterialDesignToolForegroundPopupBox}">
-                                            <StackPanel>
-                                                <Button
-                Content="Delete" Click="DeleteMovie"/>
-                                                <Button
-                Content="Options" />
-                                            </StackPanel>
-                                        </materialDesign:PopupBox>
+                                    </materialDesign:Card>
+                                </Border>
+                            </DataTemplate>
 
-                                    </StackPanel>
-                                </Grid>
+                        </ListView.ItemTemplate>
+                    </ListView>
 
-                            </StackPanel>
-
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-
-                </ListView>
-
+                </Border>
             </Grid>
+            <Grid MouseWheel="Grid_MouseWheel"
+                     MouseEnter="DisplaySlider"
+                            MouseLeave="NoneDisplaySlider" >
 
-            <Grid MouseWheel="Grid_MouseWheel">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30" />
                     <RowDefinition Height="*"></RowDefinition>
                     <RowDefinition Height="20"/>
                     <RowDefinition Height="30"></RowDefinition>
                 </Grid.RowDefinitions>
-                <ToolBar>
+                <Border BorderBrush="Black" BorderThickness="0">
+                    <ToolBar Grid.Row="0"   Padding="0 0 0 0" HorizontalAlignment="Center"  
+                             Background="{DynamicResource PrimaryLightBrush}">
 
-                    <Button
+                        <Button
                          Click="AddFiles"
-                      
+                        Background="Transparent"
                       IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
-                      Style="{StaticResource MaterialDesignFlatDarkBgButton}"
-                      
+                  Style="{StaticResource MaterialDesignIconButton}"
+                                   
+      BorderThickness="0"
                       ToolTip="Add all media files">
-                        <materialDesign:PackIcon
+                            <materialDesign:PackIcon
+                            Foreground="{DynamicResource PrimaryLightForegroundBrush}"
                     Kind="FolderOpen" />
-                      
-                    </Button>
-                    <Button
+                        </Button>
+
+                        <Button
                     Command="ApplicationCommands.Open" 
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
-                  Style="{StaticResource MaterialDesignIconButton}"
+                  Background="Transparent"
+                                  Style="{StaticResource MaterialDesignIconButton}"
                   ToolTip="Add media file">
-                        <materialDesign:PackIcon
-                    Kind="PlusThick" />
-                    </Button>
+                            <materialDesign:PackIcon
+                    Kind="PlusThick" 
+                          Foreground="{DynamicResource PrimaryLightForegroundBrush}"
+                          />
+                        </Button>
 
-                    <!-- <Separator /> -->
-                </ToolBar>
+                        <!-- <Separator /> -->
+                        <ComboBox
+                        x:Name="OutlinedComboBox"
+                        Width="150" 
+                        materialDesign:HintAssist.Hint="Recent file"
+                        ItemsSource="{Binding}"
+                        Style="{StaticResource MyComboBox}"
+                            SelectionChanged="OutlinedComboBox_SelectionChanged"
+                       />
+                        <StackPanel  Margin="10 0 5 0" Orientation="Horizontal"    
+                          
+                            HorizontalAlignment="Center" VerticalAlignment="Center"  >
 
-                <StackPanel Grid.Row="1" Name="StackpannelMedia">
-                    <MediaElement Name="mePlayer" MediaOpened="player_MediaOpened" MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
+                            <TextBlock
+                     
+                        Foreground="{DynamicResource PrimaryLightForegroundBrush}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                      Text="Dark Mode" />
+                            <ToggleButton 
+                        Margin="10 0 0 0"
+                      
+                      IsChecked="false" Click="ChangeDarkMode" x:Name="DarkMode"
+                      Foreground="{DynamicResource PrimaryDarkBrush}"
+                                Background="{DynamicResource PrimaryMidBrush}"
+                      ToolTip="MaterialDesignSwitchDarkToggleButton" >
+                          
+                            </ToggleButton>
+                        </StackPanel>
+                    </ToolBar>
 
+                </Border>
+
+                <StackPanel Grid.Row="1" Name="StackpannelMedia"
+                           >
+
+                    <Image  Name="AudiaPlayer"
+                        gif:AnimationBehavior.SourceUri="images/mediaplay.gif" />
+                    <MediaElement Name="mePlayer" 
+                                  MediaOpened="player_MediaOpened" 
+                                  MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
                     </MediaElement>
 
                 </StackPanel>
 
-                <StatusBar Grid.Row="2">
+                <StatusBar Grid.Row="2"
+                        
+                           Padding="6 0 6 0"
+                           x:Name="SliderPosition"
+                           Background="{DynamicResource PrimaryMidBrush}"
+                           
+                         >
 
                     <StatusBar.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -260,12 +602,14 @@
                         </ItemsPanelTemplate>
                     </StatusBar.ItemsPanel>
                     <StatusBarItem>
-                        <TextBlock Name="lblProgressStatus">00:00:00</TextBlock>
+                        <TextBlock Name="lblProgressStatus"
+                                   VerticalAlignment="Center"
+                                    Foreground="{DynamicResource TextBrush}">00:00:00</TextBlock>
                     </StatusBarItem>
                     <Canvas Name="CanvasSeeking" Visibility="Collapsed">
                         <TextBlock Text="00:00" 
-                       Foreground="White"
-                   Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                   VerticalAlignment="Center"
+                                Style="{StaticResource MaterialDesignCaptionTextBlock}"
                                 
                     Panel.ZIndex="1" Name="textSeeking" Canvas.Left="40" Canvas.Top="-25">
                             <TextBlock.Effect>
@@ -282,6 +626,8 @@
                     <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Stretch" RenderTransformOrigin="0.3,0.1">
 
                         <Slider x:Name="sliProgress" Grid.Row="2" 
+                                VerticalAlignment="Center"
+                         Style="{StaticResource Horizontal_Slider}"
                             Minimum="0"   Thumb.DragStarted="sliProgress_DragStarted" Thumb.DragCompleted="sliProgress_DragCompleted"
                             Value="0" ValueChanged="sliProgress_ValueChanged" 
                                 >
@@ -292,48 +638,153 @@
                             </Slider.LayoutTransform>
                         </Slider>
                     </StatusBarItem>
-                    <StatusBarItem Grid.Column="2">
-                        <TextBlock Name="lblProgressStatusEnd">00:00:00</TextBlock>
+                    <StatusBarItem Grid.Column="2"  >
+                        <TextBlock Name="lblProgressStatusEnd" VerticalAlignment="Center"
+                                  Foreground="{DynamicResource TextBrush}">00:00:00</TextBlock>
                     </StatusBarItem>
 
                 </StatusBar>
-                <StatusBar Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <Button
-                  Command="MediaCommands.Play" 
+                <DockPanel Grid.Row="3" VerticalAlignment="Center"  
+                         >
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Button
+                   Click="clickShuffleBtn"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
-                  ToolTip="Click to start media" Height="30">
-                        <materialDesign:PackIcon
-                    Kind="Play" />
-                    </Button>
-                    <Button
-                  Command="MediaCommands.Stop" Height="30"  Width="30"  
+                        VerticalAlignment="Center"
+                  ToolTip="Shuffle on" Height="30" Width="30">
+                            <materialDesign:PackIcon x:Name="ShuffleIcon"
+                            Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
+                    Kind="ShuffleDisabled" />
+                        </Button>
+                        <Button
+                  Command="MediaCommands.Rewind" Height="30" Width="30"
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}"
+                        VerticalAlignment="Center"
+                  ToolTip="Next">
+                            <materialDesign:PackIcon
+                         Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
+                    Kind="SkipBackward" />
+
+                        </Button>
+                        <Button
+                  Command="MediaCommands.PreviousTrack" 
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}"
+                        VerticalAlignment="Center"
+                  ToolTip="Click to start media" Height="30" Width="30">
+                            <materialDesign:PackIcon
+                            Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
+                    Kind="SkipPrevious" />
+                        </Button>
+                        <Button
+                  Command="MediaCommands.Stop" Height="30" Width="30"
+                        VerticalAlignment="Center"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                   ToolTip="Click to stop media">
-                        <materialDesign:PackIcon
+                            <materialDesign:PackIcon
+                          Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="Stop" />
-                    </Button>
-                    <Button
+                        </Button>
+                        <Button
+                        x:Name="PlayBtn"
+                        VerticalAlignment="Center"
+                  Command="MediaCommands.Play"  Width="30"
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}" 
+                  ToolTip="Click to start media" Height="30">
+
+                            <materialDesign:PackIcon
+                           Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
+                    Kind="Play" />
+                        </Button>
+                        <Button
+                   x:Name="PauseBtn"
                   Command="MediaCommands.Pause" Height="30" Width="30"
+                        VerticalAlignment="Center"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                   ToolTip="Click to pause media">
-                        <materialDesign:PackIcon
+                            <materialDesign:PackIcon
+                           Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="Pause" />
-                    </Button>
-                    <Button x:Name="RepeatBtn"
+                        </Button>
+                        <Button
+                  Command="MediaCommands.NextTrack" Height="30" Width="30"
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}"
+                        VerticalAlignment="Center"
+                  ToolTip="Next">
+                            <materialDesign:PackIcon
+                          
+                    Kind="SkipNext" />
+                        </Button>
+                        <Button
+                  Command="MediaCommands.FastForward" Height="30"  Width="30"
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}"
+                        VerticalAlignment="Center"
+                  ToolTip="Next">
+                            <materialDesign:PackIcon
+                           Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
+                    Kind="SkipForward" />
+                        </Button>
+
+
+                        <Button x:Name="RepeatBtn" 
                   Width="30" Height="30" Click="RepeatMode"
                   IsEnabled="True" 
                   Style="{StaticResource MaterialDesignIconButton}"
-                  ToolTip="Click to pause media">
-                  <materialDesign:PackIcon x:Name="RepeatIcon"
-                    Kind="Repeat"/>
-                    </Button>
-                    <StatusBarItem Grid.Column="2">
-                        <ProgressBar Name="pbVolume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=mePlayer, Path=Volume}" />
-                    </StatusBarItem>
-                </StatusBar>
+                            VerticalAlignment="Center"
+                  ToolTip="Repeat">
+
+                            <materialDesign:PackIcon x:Name="RepeatIcon"
+                                   Foreground="{DynamicResource PrimaryLightForegroundBrush}"                
+                    Kind="RepeatOff"/>
+                        </Button>
+
+                        <StackPanel Orientation="Horizontal" Visibility="Collapsed">
+                            <TextBlock
+  Style="{StaticResource MaterialDesignCaptionTextBlock}"
+  Text="Auto play" />
+                            <ToggleButton
+      IsChecked="True"
+      Style="{StaticResource MaterialDesignSwitchDarkToggleButton}"
+      ToolTip="MaterialDesignSwitchDarkToggleButton" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                        <Button
+                  Command="MediaCommands.Record" Height="30" Width="30" 
+                  IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                  Style="{StaticResource MaterialDesignIconButton}"
+                        VerticalAlignment="Center"
+                  ToolTip="Next">
+                            <materialDesign:PackIcon
+                           Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
+                    Kind="FastForward" />
+                        </Button>
+                        <TextBlock
+                               x:Name="SpeedUpValue"
+                                VerticalAlignment="Center"
+                               Text="1x"
+                                   Margin="5 0 10 0"
+                              Foreground="{DynamicResource PrimaryLightForegroundBrush}" >
+
+                        </TextBlock>
+                        <StatusBarItem Padding="0 0 15 0">
+
+                            <ProgressBar Name="pbVolume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=mePlayer, Path=Volume}"
+                                     />
+                        </StatusBarItem>
+                    </StackPanel>
+
+
+
+                </DockPanel>
 
             </Grid>
 
