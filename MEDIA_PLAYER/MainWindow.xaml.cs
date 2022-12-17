@@ -18,7 +18,10 @@ using System.Text;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
 using System.ComponentModel;
+using System.Reflection;
+using System.Windows.Controls.Ribbon.Primitives;
 using MaterialDesignThemes.Wpf;
+using System.Diagnostics.Contracts;
 
 namespace MEDIA_PLAYER
 {
@@ -34,6 +37,7 @@ namespace MEDIA_PLAYER
         private List<string> _prevListFullPathName = new List<string>();
         private bool autoplay = true;
 
+        private double speedup = 1;
         private bool mediaPlayerIsPlaying = false;
         private bool userIsDraggingSlider = false;
         private string _currentPlaying = string.Empty;
@@ -50,6 +54,54 @@ namespace MEDIA_PLAYER
         Media _add=new Media();
         MediaPlayer _Slider = new MediaPlayer();
         double nowPosion = 0;
+        bool isDark = false;
+        private void SetPrimaryColor(Color color,Color color2)
+        {
+            PaletteHelper paletteHelper = new PaletteHelper();
+            var theme = paletteHelper.GetTheme();
+            theme.SetPrimaryColor(color);
+            IBaseTheme baseTheme = isDark ? new MaterialDesignDarkTheme() : (IBaseTheme)new MaterialDesignLightTheme();       
+            theme.SetSecondaryColor(color2);
+            theme.SetBaseTheme(baseTheme);
+            paletteHelper.SetTheme(theme);
+        }
+        private void Background()
+        {
+
+          
+            if (isDark)
+            {
+                Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary()
+
+                {
+
+                    Source = new Uri(".\\Dark.xaml", UriKind.RelativeOrAbsolute)
+
+                }) ;
+
+            }
+            else
+            {
+                Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary()
+
+                {
+
+                    Source = new Uri(".\\Light.xaml", UriKind.RelativeOrAbsolute)
+
+                });
+            }
+           
+          
+
+        }
+        private void ChangeDarkMode(object sender, RoutedEventArgs e)
+        {
+            isDark = !isDark;
+            DarkMode.IsChecked = isDark;
+            Background();
+            
+
+        }
         public MainWindow()
         {
             InitializeComponent();
@@ -58,12 +110,20 @@ namespace MEDIA_PLAYER
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += timer_Tick;
             timer.Start();
+           
+
+     
+            DarkMode.IsChecked = isDark;
+            Background();
+
+
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             PlayListView.ItemsSource = _mediaList;
             OutlinedComboBox.ItemsSource = _prevListName;
         }
+     
         private string _shortName
         {
             get
@@ -223,7 +283,16 @@ namespace MEDIA_PLAYER
         }
         private void ChangeCurrentPlay(int current)
         {
-           
+            for (var i=0;i< PlayListView.Items.Count;i++)
+            {
+                ListViewItem row = PlayListView.ItemContainerGenerator.ContainerFromIndex(i) as ListViewItem;
+                row.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryLightBrush"].ToString());
+            }
+
+            ListViewItem rows = PlayListView.ItemContainerGenerator.ContainerFromIndex(current) as ListViewItem;
+            rows.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryDarkForegroundBrush"].ToString());
+
+
             if (File.Exists(_mediaList[current].File_Path))
             {
                 updatePreList();
@@ -352,10 +421,49 @@ namespace MEDIA_PLAYER
         {
             throw new NotImplementedException();
         }
+        private void Forward_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
 
+        private void Replay_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
+
+        private void Forward_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            double value = sliProgress.Value+5;
+          
+            TimeSpan newPosition = TimeSpan.FromSeconds(value);
+            if (newPosition.TotalSeconds > mePlayer.NaturalDuration.TimeSpan.TotalSeconds) return;
+            lblProgressStatus.Text = newPosition.ToString(@"hh\:mm\:ss");
+            _mediaList[_currentPlayingIndex].NowDurationLength = value;
+            mePlayer.Position = newPosition;
+        }
+
+        private void Replay_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            double value = sliProgress.Value - 5;
+
+            TimeSpan newPosition = TimeSpan.FromSeconds(value);
+            if (newPosition.TotalSeconds <0) return;
+            lblProgressStatus.Text = newPosition.ToString(@"hh\:mm\:ss");
+            _mediaList[_currentPlayingIndex].NowDurationLength = value;
+            mePlayer.Position = newPosition;
+        }
         private void Play_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = (mePlayer != null) && (mePlayer.Source != null)&&(mediaPlayerIsPlaying!=true);
+            if (e.CanExecute || mePlayer.Source == null)
+            {
+                PlayBtn.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                PlayBtn.Visibility = Visibility.Collapsed;
+
+            }
         }
 
         private void Play_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -367,6 +475,15 @@ namespace MEDIA_PLAYER
         private void Pause_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = mediaPlayerIsPlaying;
+            if (e.CanExecute)
+            {
+                PauseBtn.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                PauseBtn.Visibility = Visibility.Collapsed;
+
+            }
         }
 
         private void Pause_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -387,7 +504,28 @@ namespace MEDIA_PLAYER
 
             Debug.WriteLine(mediaPlayerIsPlaying);
         }
+        private void Record_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = mediaPlayerIsPlaying;
+        }
 
+        private void Record_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            double value = speedup;
+            switch (speedup)
+            {
+                case 0.25: value =0.5; break;
+                case 0.5: value =1; break;
+                case 1: value =1.25; break;
+                case 1.25: value = 1.5; break;
+                case 1.5: value = 2; break;
+                case 2: value = 0.25; break;
+            }
+            SpeedUpValue.Text = $"{value}x";
+            speedup = value;
+            mePlayer.SpeedRatio = value;
+
+        }
         private void sliProgress_DragStarted(object sender, DragStartedEventArgs e)
         {
             userIsDraggingSlider = true;
@@ -530,9 +668,9 @@ namespace MEDIA_PLAYER
         private void ChooseToPlay(object sender, MouseButtonEventArgs e)
         {
             var x = PlayListView.SelectedIndex;
-           
             if (x != -1)
             {
+                
                 _shuffleList.Clear();
                 shuffleIndex = -1;
                 Debug.WriteLine("current play " + _currentPlayingIndex.ToString());
@@ -635,12 +773,13 @@ namespace MEDIA_PLAYER
             if (PlayListStackPannel.Visibility == Visibility.Visible)
             {
                 PlayListStackPannel.Visibility = Visibility.Collapsed;
-                HiddenButton.Content = "Show";    
+                ShowHideDisplay.Kind = MaterialDesignThemes.Wpf.PackIconKind.ChevronLeft;
             }
             else
             {
                 PlayListStackPannel.Visibility = Visibility.Visible;
-                HiddenButton.Content = "Hide";
+                ShowHideDisplay.Kind = MaterialDesignThemes.Wpf.PackIconKind.ChevronRight;
+
             }
         }
 
@@ -889,10 +1028,13 @@ namespace MEDIA_PLAYER
         private void ChangeAutoPlay(object sender, RoutedEventArgs e)
         {
             autoplay = !autoplay;
+            
             Debug.WriteLine(autoplay);
             if (autoplay == true)
             {
                 AutoPlayToggleBtn.IsChecked = true;
+               
+         
                 if (sliProgress.Value + 1 > sliProgress.Maximum)
                 {
                     playNextMeda();
@@ -901,7 +1043,31 @@ namespace MEDIA_PLAYER
             else
             {
                 AutoPlayToggleBtn.IsChecked = false;
+              
             }
+        }
+
+        private void DisplaySlider(object sender, MouseEventArgs e)
+        {
+            if (mePlayer.Source == null) return;
+            SliderPosition.Visibility = Visibility.Visible;
+            
+        }
+
+        private void NoneDisplaySlider(object sender, MouseEventArgs e)
+        {
+            SliderPosition.Visibility = Visibility.Collapsed;
+           
+        }
+
+        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
+
+        private void OutlinedComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
         }
     }
 }
