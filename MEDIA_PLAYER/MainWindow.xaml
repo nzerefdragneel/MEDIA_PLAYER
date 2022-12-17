@@ -14,7 +14,7 @@
          TextOptions.TextRenderingMode="Auto"
          Background="{DynamicResource MaterialDesignPaper}"
          FontFamily="{DynamicResource MaterialDesignFont}"
-            Title="MainWindow" Height="600" Width="800"
+            Title="MainWindow" Height="800" Width="1000"
         Loaded="Window_Loaded"
         >
 
@@ -41,7 +41,7 @@
               Command="MediaCommands.PreviousTrack" />
     </Window.InputBindings>
     <Window.CommandBindings>
-        
+
         <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
         <CommandBinding Command="MediaCommands.Play" CanExecute="Play_CanExecute" Executed="Play_Executed" />
         <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
@@ -174,7 +174,7 @@
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                     <TextBlock
                       Style="{StaticResource MaterialDesignBody2TextBlock}"
-                      Text="Auto Play" />    
+                      Text="Auto Play" />
                     <ToggleButton 
                       IsChecked="True" Click="ChangeAutoPlay" Name="AutoPlayToggleBtn"
                       Style="{StaticResource MaterialDesignSwitchDarkToggleButton}"
@@ -185,12 +185,12 @@
           Style="{StaticResource MaterialDesignHeadline6TextBlock}"
           Text="Play List" />
                     <TextBlock x:Name="Nameplaylist" ></TextBlock>
-                   
+
                 </StackPanel>
-                
+
                 <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal" Grid.Row="0">
-                    
-                    
+
+
                     <Button
                     Command="ApplicationCommands.Save" Height="30" Width="30"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
@@ -198,7 +198,7 @@
                   ToolTip="Add media file">
                         <materialDesign:PackIcon
                     Kind="ContentSave" />
-                        
+
                     </Button>
                     <Button Margin="10 0 10 0"
                          Height="30" Width="30"
@@ -212,7 +212,7 @@
                     </Button>
                 </StackPanel>
                 <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    
+
                 </StackPanel>
                 <ProgressBar Grid.Row="1" Visibility="Collapsed" x:Name="progressbarLoadmedia"
                           IsIndeterminate="True" 
@@ -228,46 +228,46 @@
           Padding="0"
           Background="#1a237e"
           Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}">-->
-                                <StackPanel Mouse.MouseDown="ChooseToPlay">
+                            <StackPanel Mouse.MouseDown="ChooseToPlay">
 
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="150"></ColumnDefinition>
-                                            <ColumnDefinition Width="*"></ColumnDefinition>
-                                        </Grid.ColumnDefinitions>
-                                        <Image Source="{Binding imageReview}" Margin="2" Height="100" Width="150"></Image>
-                                        <StackPanel Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"></ColumnDefinition>
+                                        <ColumnDefinition Width="*"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <Image Source="{Binding imageReview}" Margin="2" Height="100" Width="150"></Image>
+                                    <StackPanel Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center">
 
-                                            <TextBlock TextWrapping="WrapWithOverflow" Width="100" Margin="2"
+                                        <TextBlock TextWrapping="WrapWithOverflow" Width="100" Margin="2"
                                         Style="{StaticResource MaterialDesignButtonTextBlock}"
                                   Text="{Binding Description}" />
-                                            <StackPanel Orientation="Horizontal">
-                                                <!--  <TextBlock
+                                        <StackPanel Orientation="Horizontal">
+                                            <!--  <TextBlock
                               Style="{StaticResource MaterialDesignOverlineTextBlock}"
                               Text="{Binding NowDuration}" />
                                                 <TextBlock Text=":"  Style="{StaticResource MaterialDesignOverlineTextBlock}"></TextBlock>-->
-                                                <TextBlock
+                                            <TextBlock
                               Style="{StaticResource MaterialDesignOverlineTextBlock}"
                               Text="{Binding DurationString}" />
 
-                                            </StackPanel>
+                                        </StackPanel>
 
-                                            <materialDesign:PopupBox 
+                                        <materialDesign:PopupBox 
             Padding="2,0,2,0" 
             HorizontalAlignment="Right"  
             Style="{DynamicResource MaterialDesignToolForegroundPopupBox}">
-                                                <StackPanel>
-                                                    <Button
+                                            <StackPanel>
+                                                <Button
                 Content="Delete" Click="DeleteMovie"/>
-                                                    <Button
+                                                <Button
                 Content="Options" />
-                                                </StackPanel>
-                                            </materialDesign:PopupBox>
+                                            </StackPanel>
+                                        </materialDesign:PopupBox>
 
-                                        </StackPanel>
-                                    </Grid>
+                                    </StackPanel>
+                                </Grid>
 
-                                </StackPanel>
+                            </StackPanel>
                             <!--</materialDesign:Card>-->
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -313,6 +313,7 @@
                 </ToolBar>
 
                 <StackPanel Grid.Row="1" Name="StackpannelMedia">
+                    <MediaElement Name="TempMedia" Height="150"></MediaElement>
                     <Image  Name="AudiaPlayer"
                         gif:AnimationBehavior.SourceUri="images/mediaplay.gif" />
                     <MediaElement Name="mePlayer" MediaOpened="player_MediaOpened" MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
@@ -386,7 +387,7 @@
                         <materialDesign:PackIcon
                     Kind="SkipPrevious" />
                     </Button>
-                  
+
                     <Button
                   Command="MediaCommands.Stop" Height="30"  Width="30"  
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
@@ -424,15 +425,15 @@
                   IsEnabled="True" 
                   Style="{StaticResource MaterialDesignIconButton}"
                   ToolTip="Repeat">
-                        
-                  <materialDesign:PackIcon x:Name="RepeatIcon"
+
+                        <materialDesign:PackIcon x:Name="RepeatIcon"
                     Kind="RepeatOff"/>
                     </Button>
                     <StackPanel Orientation="Horizontal" Visibility="Collapsed">
                         <TextBlock
   Style="{StaticResource MaterialDesignCaptionTextBlock}"
   Text="Auto play" />
-                    <ToggleButton
+                        <ToggleButton
       IsChecked="True"
       Style="{StaticResource MaterialDesignSwitchDarkToggleButton}"
       ToolTip="MaterialDesignSwitchDarkToggleButton" />
@@ -440,7 +441,7 @@
                     <StatusBarItem >
                         <ProgressBar Name="pbVolume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=mePlayer, Path=Volume}" />
                     </StatusBarItem>
-                    
+
 
                 </StatusBar>
 

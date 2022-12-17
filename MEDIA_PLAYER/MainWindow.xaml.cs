@@ -18,6 +18,7 @@ using System.Text;
 using MouseEventArgs = System.Windows.Input.MouseEventArgs;
 using SaveFileDialog = System.Windows.Forms.SaveFileDialog;
 using System.ComponentModel;
+using MaterialDesignThemes.Wpf;
 
 namespace MEDIA_PLAYER
 {
@@ -88,6 +89,7 @@ namespace MEDIA_PLAYER
                 sliProgress.Maximum = mePlayer.NaturalDuration.TimeSpan.TotalSeconds;
                 sliProgress.Value = mePlayer.Position.TotalSeconds;
             }
+            
         }
 
         private void Open_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -263,6 +265,7 @@ namespace MEDIA_PLAYER
         private void add_Audio_image(string path)
         {
             playlistIsChange = true;
+            _add = null;
             _add = new Media();
             var bitmap = new BitmapImage(new Uri("images/play.png", UriKind.Relative));
             _add.imageReview = bitmap;
@@ -273,40 +276,49 @@ namespace MEDIA_PLAYER
             _add.Duration_length = time;
             _add.NowDurationLength = 0;
             _add.File_Path = path;
-          
             _mediaList.Add(_add);
+            mediaPlayer = null;
 
+        }
+        private void mediaplayer_OpenMedia(object sender, EventArgs e)
+        {
+            //----------------< mediaplayer_OpenMedia() >----------------
+            //*create mediaplayer in memory and jump to position
+            //< draw video_image >
+            MediaPlayer mediaPlayer = sender as MediaPlayer;
+            DrawingVisual drawingVisual = new DrawingVisual();
+            DrawingContext drawingContext = drawingVisual.RenderOpen();
+            drawingContext.DrawVideo(mediaPlayer, new Rect(0, 0, 160, 100));
+            drawingContext.Close();
+
+            double dpiX = 1 / 200;
+            double dpiY = 1 / 200;
+            RenderTargetBitmap bmp = new RenderTargetBitmap(160, 100, dpiX, dpiY, PixelFormats.Pbgra32);
+            bmp.Render(drawingVisual);
+            //</ draw video_image >
+          
+            //< set Image >
         }
         private void add_Video_Image(string sFullname_Path_of_Video)
         {
             playlistIsChange = true;
+            _add = null;
             _add = new Media();
             //----------------< add_Video_Image() >----------------
             //*create mediaplayer in memory and jump to position
             Debug.WriteLine(sFullname_Path_of_Video);
-            MediaPlayer mediaPlayer = new MediaPlayer();
-           // mediaPlayer.MediaOpened += new EventHandler(mediaplayer_OpenMedia);
+            MediaPlayer? mediaPlayer = new MediaPlayer();
+           //mediaPlayer.MediaOpened += new EventHandler(mediaplayer_OpenMedia);
             mediaPlayer.MediaFailed += (o, args) =>
             {
                 MessageBox.Show("Media Failed!!");
             };
             mediaPlayer.ScrubbingEnabled = true;
             mediaPlayer.Open(new Uri(sFullname_Path_of_Video));
-            mediaPlayer.ScrubbingEnabled = true;
-            //mediaPlayer.Position = TimeSpan.FromSeconds(0);
-            _add.File_Path=sFullname_Path_of_Video;
-            DrawingVisual drawingVisual = new DrawingVisual();
-            DrawingContext drawingContext = drawingVisual.RenderOpen();
-            drawingContext.DrawVideo(mediaPlayer, new Rect(0, 0, 160, 100));
-            drawingContext.Close();
-            double dpiX = 1 / 200;
-            double dpiY = 1 / 200;
             
-            RenderTargetBitmap bmp = new RenderTargetBitmap(160, 100, dpiX, dpiY, PixelFormats.Pbgra32);
-            
-            bmp.Render(drawingVisual);
-            _add.imageReview = bmp;
-            while (!mediaPlayer.NaturalDuration.HasTimeSpan) ;
+            mediaPlayer.Position = TimeSpan.FromSeconds(0);
+            TempMedia.Source = mediaPlayer.Source;
+            while (!mediaPlayer.NaturalDuration.HasTimeSpan);
             if (mediaPlayer.NaturalDuration.HasTimeSpan)
             {
                 var time = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
@@ -314,9 +326,24 @@ namespace MEDIA_PLAYER
                 Debug.WriteLine("string", _add.DurationString);
                 _add.NowDurationLength = 0.0;
             }
-           
-            _mediaList.Add(_add);
+
+            _add.File_Path=sFullname_Path_of_Video;
+            DrawingVisual drawingVisual = new DrawingVisual();
+            DrawingContext drawingContext = drawingVisual.RenderOpen();
+            drawingContext.DrawVideo(mediaPlayer, new Rect(0, 0, 160, 100));
+            drawingContext.Close();
             
+            double dpiX = 1 / 200;
+            double dpiY = 1 / 200;
+            
+            RenderTargetBitmap bmp = new RenderTargetBitmap(160, 100, dpiX, dpiY, PixelFormats.Pbgra32);
+          
+            bmp.Render(drawingVisual);
+            _add.imageReview = bmp;
+            
+            _mediaList.Add(_add);
+            mediaPlayer = null;
+
 
             //----------------</ add_Video_Image() >----------------
         }
@@ -369,6 +396,7 @@ namespace MEDIA_PLAYER
             else imageSeeking.Visibility = Visibility.Visible;
             nowPosion = sliProgress.Value;
             textSeeking.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+            _Slider = null;
             _Slider = new MediaPlayer();
             //----------------< add_Video_Image() >----------------
             //*create mediaplayer in memory and jump to position
@@ -502,6 +530,7 @@ namespace MEDIA_PLAYER
         private void ChooseToPlay(object sender, MouseButtonEventArgs e)
         {
             var x = PlayListView.SelectedIndex;
+           
             if (x != -1)
             {
                 _shuffleList.Clear();
@@ -511,6 +540,7 @@ namespace MEDIA_PLAYER
                 updatePreList();
                 ChangeCurrentPlay(x);
             }
+
         }
         public void ReadAllFileInFolder(string path)
         {
@@ -561,9 +591,22 @@ namespace MEDIA_PLAYER
                 }
             }
         }
-
+        private void SetPrimaryColor(Color color)
+        {
+           
+            PaletteHelper paletteHelper = new PaletteHelper();
+            var theme = paletteHelper.GetTheme();
+        
+            paletteHelper.SetTheme(theme);
+            var isDark = true; 
+            IBaseTheme baseTheme = isDark ? new MaterialDesignDarkTheme() : (IBaseTheme)new MaterialDesignLightTheme();
+            theme.SetBaseTheme(baseTheme);
+            paletteHelper.SetTheme(theme);
+            
+        }
         private void AddFiles(object sender, RoutedEventArgs e)
         {
+            SetPrimaryColor(Colors.MediumAquamarine);
             progressbarLoadmedia.Visibility= Visibility.Visible;
             var dialog = new System.Windows.Forms.FolderBrowserDialog();
             var result = dialog.ShowDialog();
