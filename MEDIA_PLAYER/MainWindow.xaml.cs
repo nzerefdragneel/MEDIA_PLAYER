@@ -33,11 +33,13 @@ namespace MEDIA_PLAYER
         private bool mediaPlayerIsShuffling=false;
         private int shuffleIndex = -1;
         private List<int> _shuffleList = new List<int>();
-        private List<int> _prevList = new List<int>();
-        private ObservableCollection<string> _prevListName = new ObservableCollection<string>();
-        private List<string> _prevListFullPathName = new List<string>();
         private bool autoplay = true;
-
+        //prev list
+        private List<int> _prevList = new List<int>();
+        private ObservableCollection<string> _prevListName = new ObservableCollection<string>() { "Remove all"};
+        private List<string> _prevListFullPathName = new List<string>();
+        private string saveRecentFile = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "RecentFile.json");
+        //play media
         private double speedup = 1;
         private bool mediaPlayerIsPlaying = false;
         private bool userIsDraggingSlider = false;
@@ -123,6 +125,22 @@ namespace MEDIA_PLAYER
         {
             PlayListView.ItemsSource = _mediaList;
             OutlinedComboBox.ItemsSource = _prevListName;
+            if (!File.Exists(saveRecentFile)) return;
+            StreamReader input;
+            input = new StreamReader(saveRecentFile);
+           
+            string path = "";
+            while ((path = input.ReadLine()) != null)
+            {
+                if (path != "")
+                {
+                    Debug.WriteLine("save " + path);
+                    _prevListFullPathName.Add(path);
+                    _prevListName.Add(Path.GetFileNameWithoutExtension(path));
+                }
+            }
+            Debug.WriteLine(_mediaList.Count);
+            input.Close();
         }
      
         private string _shortName
@@ -272,13 +290,13 @@ namespace MEDIA_PLAYER
             {
                 if (string.Compare(_currentPlaying, _prevListFullPathName[i]) == 0)
                 {
-                    _prevList.RemoveAt(i);
-                    _prevListName.RemoveAt(i);
+                   // _prevList.RemoveAt(i);
+                    _prevListName.RemoveAt(i+1);
                     _prevListFullPathName.RemoveAt(i);
                     break;
                 }
             }
-            _prevList.Add(_currentPlayingIndex);
+           // _prevList.Add(_currentPlayingIndex);
             _prevListName.Add(Path.GetFileNameWithoutExtension(_currentPlaying));
             _prevListFullPathName.Add(_currentPlaying);
         }
@@ -593,6 +611,7 @@ namespace MEDIA_PLAYER
         private void Grid_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             mePlayer.Volume += (e.Delta > 0) ? 0.1 : -0.1;
+            
         }
 
         private void player_MediaOpened(object sender, RoutedEventArgs e)
@@ -965,30 +984,8 @@ namespace MEDIA_PLAYER
 
         private void Open_Playlist(object sender, RoutedEventArgs e)
         {
-            //lưu lại mấy thằng cũ ở đây:
+            SaveOldPlaylist();
             
-            if (playlistIsChange == true)
-            {
-                if (playlistPath != string.Empty)
-                {
-                    MessageBoxResult choice = (MessageBoxResult)MessageBox.Show("Play list has been change, Save as?", "Choose", (System.Windows.Forms.MessageBoxButtons)MessageBoxButton.OKCancel);
-                    if (choice == MessageBoxResult.OK)
-                    {
-                        SaveAsPlaylist();
-                    }
-                }
-                else
-                {
-                    MessageBoxResult choice = (MessageBoxResult)MessageBox.Show("Do you want to save the playlist?", "Choose", (System.Windows.Forms.MessageBoxButtons)MessageBoxButton.OKCancel);
-                    if (choice == MessageBoxResult.OK)
-                    {
-                        openPathToSave();
-                        SaveAsPlaylist();
-                    }
-                }
-
-            }
-
             var dialog = new OpenFileDialog();
             dialog.Filter = "Playlist (*.Plt)|*.Plt";
             if (dialog.ShowDialog() != true)
@@ -1087,13 +1084,24 @@ namespace MEDIA_PLAYER
 
         private void OutlinedComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var index = OutlinedComboBox.SelectedIndex;
-            if (index == -1) return;
-            MessageBoxResult choice = (MessageBoxResult)MessageBox.Show("Create new playlist to add this?", "Choose", (System.Windows.Forms.MessageBoxButtons)MessageBoxButton.OKCancel);
-            if (choice == MessageBoxResult.OK)
+            var index = OutlinedComboBox.SelectedIndex-1;
+            if (index <-1) return;
+            if (index == -1)
             {
-                SaveOldPlaylist();
-                CreateNewPlayList();
+                _prevList.Clear();
+                _prevListName.Clear();
+                _prevListName.Add("Remove all");
+                _prevListFullPathName.Clear();
+                return;
+             }
+            if (_mediaList.Count != 0)
+            {
+                MessageBoxResult choice = (MessageBoxResult)MessageBox.Show("Create new playlist to add this?", "Choose", (System.Windows.Forms.MessageBoxButtons)MessageBoxButton.OKCancel);
+                if (choice == MessageBoxResult.OK)
+                {
+                    SaveOldPlaylist();
+                    CreateNewPlayList();
+                }
             }
             var path = _prevListFullPathName[index];
             if (checkHavingFile(path) == true)
@@ -1135,7 +1143,7 @@ namespace MEDIA_PLAYER
         }
         private void SaveOldPlaylist()
         {
-            if (playlistIsChange == true)
+            if (playlistIsChange == true && _mediaList.Count!=0)
             {
                 if (playlistPath != string.Empty)
                 {
@@ -1160,6 +1168,26 @@ namespace MEDIA_PLAYER
         {
             SaveOldPlaylist();
             CreateNewPlayList();
+        }
+
+        private void saveprevlist()
+        {
+            StreamWriter output;
+            output = new StreamWriter(saveRecentFile);
+            StringBuilder writeFile = new StringBuilder();
+            foreach (var i in _prevListFullPathName)
+            {
+                writeFile.AppendLine(i);
+            }
+            Debug.WriteLine(writeFile.ToString());
+            output.WriteLine(writeFile.ToString());
+            output.Close();
+        }
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            //save recent files
+            updatePreList();
+            saveprevlist();
         }
     }
 }

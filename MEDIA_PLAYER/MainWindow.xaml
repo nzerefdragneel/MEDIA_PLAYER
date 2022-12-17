@@ -17,7 +17,7 @@
          Foreground="{DynamicResource PrimaryMidBrush}"
          FontFamily="{DynamicResource MaterialDesignFont}"
          Title="Media Player" Height="700" Width="1000"
-        Loaded="Window_Loaded"
+        Loaded="Window_Loaded" Closed="Window_Closed"
         >
 
 
@@ -584,7 +584,8 @@
 
                     <Image  Name="AudiaPlayer"
                         gif:AnimationBehavior.SourceUri="images/mediaplay.gif" />
-                    <MediaElement Name="mePlayer" 
+                    <MediaElement Name="mePlayer" StretchDirection="Both"  MouseEnter="DisplaySlider"
+                            MouseLeave="NoneDisplaySlider"
                                   MediaOpened="player_MediaOpened" 
                                   MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
                     </MediaElement>
@@ -634,7 +635,7 @@
                     </Canvas>
                     <StatusBarItem Grid.Column="1" HorizontalContentAlignment="Stretch" RenderTransformOrigin="0.3,0.1">
 
-                        <Slider x:Name="sliProgress" Grid.Row="2" 
+                        <Slider x:Name="sliProgress" Grid.Row="2"   
                                 VerticalAlignment="Center"
                          Style="{StaticResource Horizontal_Slider}"
                             Minimum="0"   Thumb.DragStarted="sliProgress_DragStarted" Thumb.DragCompleted="sliProgress_DragCompleted"
