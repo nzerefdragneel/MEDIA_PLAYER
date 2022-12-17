@@ -72,16 +72,16 @@
 
         <ResourceDictionary>
             <Style x:Key="MyComboBoxItem" TargetType="{x:Type ComboBoxItem}">
-                
+
                 <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-            
+
             </Style>
             <Style x:Key="MyComboBox" TargetType="{x:Type ComboBox}">
                 <Setter Property="ItemContainerStyle" Value="{StaticResource MyComboBoxItem}"/>
                 <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
-                
+
 
             </Style>
             <Style x:Key="CardStyle1" TargetType="{x:Type materialDesign:Card}">
@@ -290,14 +290,15 @@
                 <Setter Property="Focusable" Value="False"/>
                 <Setter Property="SnapsToDevicePixels" Value="true" />
                 <Setter Property="OverridesDefaultStyle" Value="true" />
+              
                 <Style.Triggers>
                     <Trigger  Property="IsMouseOver" Value="False">
-                        <Setter Property="MinHeight" Value="41" />
+                        <Setter Property="MinHeight" Value="30" />
 
                         <Setter Property="Template" Value="{StaticResource Slider}" />
                     </Trigger>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="MinHeight" Value="41" />
+                        <Setter Property="MinHeight" Value="30" />
 
                         <Setter Property="Template" Value="{StaticResource SliderMouseOn}" />
                     </Trigger>
@@ -318,7 +319,7 @@
             </Grid.ColumnDefinitions>
             <StackPanel Width="80" HorizontalAlignment="Left" VerticalAlignment="Center">
                 <ComboBox Style="{StaticResource MyComboBox}" Text="để tạm"  IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged"  >
-                    
+
                     <ComboBoxItem>Play: Ctrl+X</ComboBoxItem>
                     <ComboBoxItem>Stop: Ctrl+C</ComboBoxItem>
                     <ComboBoxItem>Pause: Ctrl+Z</ComboBoxItem>
@@ -327,8 +328,8 @@
                     <ComboBoxItem>Prev: left</ComboBoxItem>
                 </ComboBox>
             </StackPanel>
-           
-                <Button Name="HiddenButton"   Grid.Column="1" Click="HiddenBtn"
+
+            <Button Name="HiddenButton"   Grid.Column="1" Click="HiddenBtn"
                     Padding="0 0 0 0"
                     HorizontalAlignment="Right"
                     
@@ -338,19 +339,19 @@
       IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
     
       ToolTip="Show" >
-                
-                    <materialDesign:PackIcon x:Name="ShowHideDisplay"
+
+                <materialDesign:PackIcon x:Name="ShowHideDisplay"
                     Kind="ChevronRight" 
                                        
                        Background="{DynamicResource PrimaryLightBrush}"
                        Foreground="{DynamicResource PrimaryLightForegroundBrush}"
                     Height="29" Width="29" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              
+
             </Button>
-           
+
         </Grid>
 
-        <DockPanel Grid.Row="1" >
+        <DockPanel Grid.Row="1"  x:Name="ControlView" >
 
             <Grid x:Name="PlayListStackPannel" Width="350" DockPanel.Dock="Right" Visibility="Visible"
                >
@@ -464,7 +465,7 @@
                                                 <Border CornerRadius="5" 
                                                 Padding="2" >
                                                     <Image Source="{Binding imageReview}"></Image>
-                                                    
+
                                                 </Border>
                                                 <StackPanel Grid.Column="1" 
                                                     Orientation="Horizontal" 
@@ -507,8 +508,10 @@
                 </Border>
             </Grid>
             <Grid MouseWheel="Grid_MouseWheel" 
-                     MouseEnter="DisplaySlider"
-                            MouseLeave="NoneDisplaySlider" >
+                 
+                  
+                  Panel.ZIndex="2"
+                >
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30" />
@@ -571,7 +574,7 @@
                       Foreground="{DynamicResource PrimaryDarkBrush}"
                                 Background="{DynamicResource PrimaryMidBrush}"
                       ToolTip="MaterialDesignSwitchDarkToggleButton" >
-                          
+
                             </ToggleButton>
                         </StackPanel>
                     </ToolBar>
@@ -579,13 +582,13 @@
                 </Border>
 
                 <StackPanel Grid.Row="1" Name="StackpannelMedia" Orientation="Vertical" HorizontalAlignment="Center"
-                          VerticalAlignment="Center"  
+                          VerticalAlignment="Center" 
+                           Background="Black"
                            >
 
                     <Image  Name="AudiaPlayer"
                         gif:AnimationBehavior.SourceUri="images/mediaplay.gif" />
-                    <MediaElement Name="mePlayer" StretchDirection="Both"  MouseEnter="DisplaySlider"
-                            MouseLeave="NoneDisplaySlider"
+                    <MediaElement Name="mePlayer" StretchDirection="Both" 
                                   MediaOpened="player_MediaOpened" 
                                   MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
                     </MediaElement>
@@ -597,7 +600,7 @@
                            Padding="6 0 6 0"
                            x:Name="SliderPosition"
                            Background="{DynamicResource PrimaryMidBrush}"
-                           
+                   
                          >
 
                     <StatusBar.ItemsPanel>
@@ -640,6 +643,7 @@
                          Style="{StaticResource Horizontal_Slider}"
                             Minimum="0"   Thumb.DragStarted="sliProgress_DragStarted" Thumb.DragCompleted="sliProgress_DragCompleted"
                             Value="0" ValueChanged="sliProgress_ValueChanged" 
+                                IsMoveToPointEnabled="True"
                                 >
                             <Slider.LayoutTransform>
                                 <TransformGroup>
@@ -655,6 +659,7 @@
 
                 </StatusBar>
                 <DockPanel Grid.Row="3" VerticalAlignment="Center"  
+                   
                          >
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
                         <Button
@@ -728,7 +733,7 @@
                         VerticalAlignment="Center"
                   ToolTip="Next">
                             <materialDesign:PackIcon
-                          
+                           Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="SkipNext" />
                         </Button>
                         <Button
@@ -767,16 +772,17 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
-                        <Button
+                        <!--<Button
                   Command="MediaCommands.Record" Height="30" Width="30" 
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                         VerticalAlignment="Center"
+                            Visibility="Collapsed"
                   ToolTip="Next">
                             <materialDesign:PackIcon
                            Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="FastForward" />
-                        </Button>
+                        </Button>-->
                         <TextBlock
                                x:Name="SpeedUpValue"
                                 VerticalAlignment="Center"
@@ -785,10 +791,72 @@
                               Foreground="{DynamicResource PrimaryLightForegroundBrush}" >
 
                         </TextBlock>
-                        <StatusBarItem Padding="0 0 15 0">
+                        <materialDesign:PopupBox
+                              Closed="PopupBox_OnClosed"
+                              IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+                              Opened="PopupBox_OnOpened"
+                              PlacementMode="TopAndAlignCentres"
+                             
+                               Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
+                            
+                              ToolTip="PopupBox, Style MaterialDesignMultiFloatingActionPopupBox"
+                              ToolTipService.Placement="MousePoint">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Slider Orientation="Vertical" Value="1" Minimum="0.25" Maximum="2" Height="200" Width="30"
+                                        HorizontalAlignment="Center"
+                                        ValueChanged="SpeedChange"
+                                        Name="SpeedSlider"
+                                    >
+                                    <Slider.LayoutTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform ScaleY="0.5" ScaleX="0.5"/>
+                                        </TransformGroup>
+                                    </Slider.LayoutTransform>
+                                </Slider>
+                            </StackPanel>
+                        </materialDesign:PopupBox>
+                        <Button x:Name="VolumnMute" 
+                  Width="30" Height="30" Click="UnMute"
+                  IsEnabled="True" 
+                  Style="{StaticResource MaterialDesignIconButton}"
+                            VerticalAlignment="Center"
+                  ToolTip="Mute"
+                              >
 
-                            <ProgressBar Name="pbVolume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=mePlayer, Path=Volume}"
-                                     />
+                            <materialDesign:PackIcon
+                                   Foreground="{DynamicResource PrimaryLightForegroundBrush}"                
+                    Kind="VolumeMute"/>
+                        </Button>
+                        <Button x:Name="VolumnNotMute" 
+                  Width="30" Height="30" Click="Mute"
+                  IsEnabled="True" 
+                  Style="{StaticResource MaterialDesignIconButton}"
+                            VerticalAlignment="Center"
+                  ToolTip="Volumn ">
+
+                            <materialDesign:PackIcon x:Name="VolumnItem"
+                                   Foreground="{DynamicResource PrimaryLightForegroundBrush}"                
+                    Kind="VolumeMedium"/>
+                        </Button>
+                        <StatusBarItem Padding="0 0 15 0" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                            <!--<ProgressBar Name="pbVolume" Width="50" Height="12" Maximum="1" Value="{Binding ElementName=mePlayer, Path=Volume}"
+                                     />-->
+                            <Slider Foreground="White" Background="#b3b3b3"
+                                 x:Name="pbVolume" 
+                                 Maximum="1" Minimum="0" Width="150" Height="10"
+                              Value="{Binding ElementName=mePlayer, Path=Volume}"            
+                                 Style="{StaticResource Horizontal_Slider}"
+                                       IsMoveToPointEnabled="True"
+                                    ValueChanged="VolumnChange"
+                     >
+                                <Slider.LayoutTransform>
+                                    <TransformGroup>
+                                        <ScaleTransform ScaleY="0.5" ScaleX="0.5"/>
+                                    </TransformGroup>
+                                </Slider.LayoutTransform>
+                            </Slider>
+
                         </StatusBarItem>
                     </StackPanel>
 

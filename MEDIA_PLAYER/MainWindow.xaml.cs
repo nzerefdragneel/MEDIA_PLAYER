@@ -113,12 +113,19 @@ namespace MEDIA_PLAYER
             timer.Interval = TimeSpan.FromSeconds(1);
             timer.Tick += timer_Tick;
             timer.Start();
-           
 
+            mePlayer.Volume = 50;
      
             DarkMode.IsChecked = isDark;
             Background();
-
+            if (ControlView.IsMouseOver)
+            {
+               // DisplaySlider();
+            }
+            else
+            {
+               // NoneDisplaySlider();
+            }
 
         }
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -1068,13 +1075,15 @@ namespace MEDIA_PLAYER
         private void DisplaySlider(object sender, MouseEventArgs e)
         {
             if (mePlayer.Source == null) return;
+        
             SliderPosition.Visibility = Visibility.Visible;
             
         }
 
         private void NoneDisplaySlider(object sender, MouseEventArgs e)
         {
-            SliderPosition.Visibility = Visibility.Collapsed;
+            
+                SliderPosition.Visibility = Visibility.Collapsed;
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1188,6 +1197,59 @@ namespace MEDIA_PLAYER
             //save recent files
             updatePreList();
             saveprevlist();
+        }
+
+        private void VolumnChange(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            var value = pbVolume.Value;
+            mePlayer.Volume = value;
+
+            VolumnMute.Visibility = Visibility.Collapsed;
+            VolumnNotMute.Visibility=Visibility.Collapsed;
+            pbVolume.Visibility = Visibility.Visible;
+            if (value == 0)
+            {
+                pbVolume.Visibility = Visibility.Collapsed;   
+                VolumnMute.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                VolumnNotMute.Visibility = Visibility.Visible;
+                if (value <= 0.33) { VolumnItem.Kind = PackIconKind.VolumeLow; return; }
+                if (value <= 0.66) { VolumnItem.Kind = PackIconKind.VolumeMedium; return; }
+                if (value >0.66 ) { VolumnItem.Kind = PackIconKind.VolumeHigh; return; }
+            }
+        }
+
+        private void Mute(object sender, RoutedEventArgs e)
+        {
+            pbVolume.Value = 0;
+           
+        }
+
+        private void UnMute(object sender, RoutedEventArgs e)
+        {
+            pbVolume.Value = 0.5;
+           
+        }
+
+        private void PopupBox_OnOpened(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void PopupBox_OnClosed(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void SpeedChange(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            double value = Math.Round( SpeedSlider.Value,2);
+            
+            SpeedUpValue.Text = $"{value}x";
+            speedup = value;
+            mePlayer.SpeedRatio = value;
         }
     }
 }
