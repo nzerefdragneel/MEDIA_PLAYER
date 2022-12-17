@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Windows.Controls.Ribbon.Primitives;
 using MaterialDesignThemes.Wpf;
 using System.Diagnostics.Contracts;
+using System.Threading;
 
 namespace MEDIA_PLAYER
 {
@@ -224,7 +225,6 @@ namespace MEDIA_PLAYER
         }
         private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Video |*.flv;*.avi;*.vmv;*.mp4;*.mpg;*.m4v|Audio|*.mp3;*.mpg;*.mpeg;*.wav;*.wave|All files (*.*)|*.*";
             progressbarLoadmedia.Visibility = Visibility.Visible;
@@ -253,7 +253,8 @@ namespace MEDIA_PLAYER
 
                         Debug.WriteLine("path", _currentPlaying);
                         mePlayer.Source = new Uri(_currentPlaying);
-
+                        mePlayer.Play();
+                        mePlayer.Stop();
                         Debug.WriteLine("ok");
                         mePlayer.MediaFailed += (o, args) =>
                         {
@@ -283,16 +284,17 @@ namespace MEDIA_PLAYER
         }
         private void ChangeCurrentPlay(int current)
         {
-            for (var i=0;i< PlayListView.Items.Count;i++)
+            if (mePlayer.Source != null)
             {
-                ListViewItem row = PlayListView.ItemContainerGenerator.ContainerFromIndex(i) as ListViewItem;
-                row.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryLightBrush"].ToString());
+                for (var i = 0; i < _mediaList.Count; i++)
+                {
+                    ListViewItem row = PlayListView.ItemContainerGenerator.ContainerFromIndex(i) as ListViewItem;
+                    if (row!=null)
+                    row.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryLightBrush"].ToString());
+                }
+                ListViewItem rows = PlayListView.ItemContainerGenerator.ContainerFromIndex(current) as ListViewItem;
+                if (rows != null) rows.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryDarkForegroundBrush"].ToString());
             }
-
-            ListViewItem rows = PlayListView.ItemContainerGenerator.ContainerFromIndex(current) as ListViewItem;
-            rows.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryDarkForegroundBrush"].ToString());
-
-
             if (File.Exists(_mediaList[current].File_Path))
             {
                 updatePreList();
@@ -373,8 +375,7 @@ namespace MEDIA_PLAYER
             playlistIsChange = true;
             _add = null;
             _add = new Media();
-            //----------------< add_Video_Image() >----------------
-            //*create mediaplayer in memory and jump to position
+           
             Debug.WriteLine(sFullname_Path_of_Video);
             MediaPlayer? mediaPlayer = new MediaPlayer();
            //mediaPlayer.MediaOpened += new EventHandler(mediaplayer_OpenMedia);
@@ -384,10 +385,11 @@ namespace MEDIA_PLAYER
             };
             mediaPlayer.ScrubbingEnabled = true;
             mediaPlayer.Open(new Uri(sFullname_Path_of_Video));
-            
+            mediaPlayer.Stop();
             mediaPlayer.Position = TimeSpan.FromSeconds(0);
-            TempMedia.Source = mediaPlayer.Source;
+
             while (!mediaPlayer.NaturalDuration.HasTimeSpan);
+            
             if (mediaPlayer.NaturalDuration.HasTimeSpan)
             {
                 var time = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
@@ -396,50 +398,45 @@ namespace MEDIA_PLAYER
                 _add.NowDurationLength = 0.0;
             }
 
-            _add.File_Path=sFullname_Path_of_Video;
+            _add.File_Path = sFullname_Path_of_Video;
             DrawingVisual drawingVisual = new DrawingVisual();
             DrawingContext drawingContext = drawingVisual.RenderOpen();
             drawingContext.DrawVideo(mediaPlayer, new Rect(0, 0, 160, 100));
             drawingContext.Close();
-            
+            Thread.Sleep(200);
             double dpiX = 1 / 200;
             double dpiY = 1 / 200;
             
             RenderTargetBitmap bmp = new RenderTargetBitmap(160, 100, dpiX, dpiY, PixelFormats.Pbgra32);
-          
+            
             bmp.Render(drawingVisual);
             _add.imageReview = bmp;
-            
+         
             _mediaList.Add(_add);
             mediaPlayer = null;
 
-
-            //----------------</ add_Video_Image() >----------------
         }
 
-        private EventHandler mediaplayer_OpenMedia(string x)
-        {
-            throw new NotImplementedException();
-        }
         private void Forward_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = mediaPlayerIsPlaying;
+            e.CanExecute = (mePlayer != null) && (mePlayer.Source != null);
         }
 
         private void Replay_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = mediaPlayerIsPlaying;
+            e.CanExecute = (mePlayer != null) && (mePlayer.Source != null);
         }
 
         private void Forward_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            double value = sliProgress.Value+5;
-          
-            TimeSpan newPosition = TimeSpan.FromSeconds(value);
-            if (newPosition.TotalSeconds > mePlayer.NaturalDuration.TimeSpan.TotalSeconds) return;
-            lblProgressStatus.Text = newPosition.ToString(@"hh\:mm\:ss");
-            _mediaList[_currentPlayingIndex].NowDurationLength = value;
-            mePlayer.Position = newPosition;
+            if (sliProgress.Value + 5 > _mediaList[_currentPlayingIndex].Duration_length) 
+            {
+                sliProgress.Value = _mediaList[_currentPlayingIndex].Duration_length;
+                if (autoplay == false) { return; }
+                playNextMeda();
+            }
+            else  
+            sliProgress.Value +=5;
         }
 
         private void Replay_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -654,7 +651,6 @@ namespace MEDIA_PLAYER
                 {
                     updatePreList();
                     ChangeCurrentPlay(next);
-
                 }
                 //else here: handing cacs kieeux:v
 
@@ -670,7 +666,6 @@ namespace MEDIA_PLAYER
             var x = PlayListView.SelectedIndex;
             if (x != -1)
             {
-                
                 _shuffleList.Clear();
                 shuffleIndex = -1;
                 Debug.WriteLine("current play " + _currentPlayingIndex.ToString());
@@ -703,6 +698,8 @@ namespace MEDIA_PLAYER
                             AudiaPlayer.Visibility = Visibility.Collapsed;
                             _currentPlaying = d;
                             mePlayer.Source = new Uri(d);
+                            mePlayer.Play();
+                            mePlayer.Stop();
                             mePlayer.MediaFailed += (o, args) =>
                             {
                                 MessageBox.Show("Media Failed!!");
@@ -717,6 +714,8 @@ namespace MEDIA_PLAYER
                             _currentPlaying = d;
                             Debug.WriteLine("path", d);
                             mePlayer.Source = new Uri(d);
+                            mePlayer.Play();
+                            mePlayer.Stop();
                             AudiaPlayer.Visibility = Visibility.Visible;
 
                             Debug.WriteLine("ok");
@@ -763,11 +762,6 @@ namespace MEDIA_PLAYER
 
         }
 
-        private void DeleteThis(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void HiddenBtn(object sender, RoutedEventArgs e)
         {
             if (PlayListStackPannel.Visibility == Visibility.Visible)
@@ -791,7 +785,16 @@ namespace MEDIA_PLAYER
             }
         }
         //current=index of playlist
-       
+       private void SetUp()
+        {
+            mediaPlayerIsPlaying = false;
+            userIsDraggingSlider = false;
+            _currentPlaying = string.Empty;
+            _currentPlayingIndex = 0;
+            mePlayer.Source = null;
+            sliProgress.Value = 0;
+            lblProgressStatusEnd.Text = "00:00:00";
+        }
         private void DeleteMovie(object sender, RoutedEventArgs e)
         {
             var item = (sender as FrameworkElement).DataContext;
@@ -800,15 +803,30 @@ namespace MEDIA_PLAYER
             {
                 playlistIsChange= true;
                 _mediaList.RemoveAt(index);
+
+                //nếu mà xóa hết rùi thì reset
+                if (_mediaList.Count == 0)
+                {
+                    SetUp();
+                    return;
+                }
                 if (index == _currentPlayingIndex)
                 {
+                    //nếu như xóa hết thì chả còn gì, mà xóa còn thì change bằng next
+                    //nếu next éo đc thì prev nếu prev
+                    //éo được thì thằng đầu list
                     var next = nextPlay(_currentPlayingIndex);
                     if (next != -1)
                     {
                         ChangeCurrentPlay(next);
                     }
                     else
-                    ChangeCurrentPlay(0);
+                    {
+                        var prev = prevPlay(_currentPlayingIndex);
+                        if (prev != -1) { ChangeCurrentPlay(prev); }
+                        else
+                        ChangeCurrentPlay(0);
+                    }
                 }
             }
         }
@@ -984,6 +1002,7 @@ namespace MEDIA_PLAYER
             userIsDraggingSlider = false;
             _currentPlaying = string.Empty;
             _currentPlayingIndex = 0;
+            mePlayer.Source = null;
           
             playlistPath = dialog.FileName;
             Nameplaylist.Text = Path.GetFileNameWithoutExtension(playlistPath);
@@ -1011,6 +1030,8 @@ namespace MEDIA_PLAYER
                         Debug.WriteLine("path", _currentPlaying);
                         mePlayer.Source = new Uri(_currentPlaying);
                         mePlayer.Position = TimeSpan.FromSeconds(0);
+                        mePlayer.Play();
+                        mePlayer.Stop();
                         Debug.WriteLine("ok");
                         mePlayer.MediaFailed += (o, args) =>
                         {
@@ -1057,7 +1078,6 @@ namespace MEDIA_PLAYER
         private void NoneDisplaySlider(object sender, MouseEventArgs e)
         {
             SliderPosition.Visibility = Visibility.Collapsed;
-           
         }
 
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1067,7 +1087,79 @@ namespace MEDIA_PLAYER
 
         private void OutlinedComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            var index = OutlinedComboBox.SelectedIndex;
+            if (index == -1) return;
+            MessageBoxResult choice = (MessageBoxResult)MessageBox.Show("Create new playlist to add this?", "Choose", (System.Windows.Forms.MessageBoxButtons)MessageBoxButton.OKCancel);
+            if (choice == MessageBoxResult.OK)
+            {
+                SaveOldPlaylist();
+                CreateNewPlayList();
+            }
+            var path = _prevListFullPathName[index];
+            if (checkHavingFile(path) == true)
+            {
+                for (var i=0;i<_mediaList.Count;i++)
+                {
+                    if (string.Compare(path, _mediaList[i].File_Path) == 0) {
+                        ChangeCurrentPlay(i);
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                if (IsVideoFile(path))
+                {
+                    add_Video_Image(path);
+                }
+                else { add_Audio_image(path);}
+                if (_mediaList.Count != 1 || mePlayer.Source==null)
+                    ChangeCurrentPlay(_mediaList.Count - 1);
+            }
+            playlistIsChange = true;
+        }
 
+        private void CreateNewPlayList()
+        {
+            Nameplaylist.Text = "";
+            _mediaList.Clear();
+            shuffleIndex = -1;
+            _shuffleList.Clear();
+            mediaPlayerIsPlaying = false;
+            userIsDraggingSlider = false;
+            _currentPlaying = string.Empty;
+            _currentPlayingIndex = 0;
+            mePlayer.Source = null;
+            playlistPath = string.Empty;
+            playlistIsChange= false;
+        }
+        private void SaveOldPlaylist()
+        {
+            if (playlistIsChange == true)
+            {
+                if (playlistPath != string.Empty)
+                {
+                    MessageBoxResult choice1 = (MessageBoxResult)MessageBox.Show("Play list has been change, Save as?", "Choose", (System.Windows.Forms.MessageBoxButtons)MessageBoxButton.OKCancel);
+                    if (choice1 == MessageBoxResult.OK)
+                    {
+                        SaveAsPlaylist();
+                    }
+                }
+                else
+                {
+                    MessageBoxResult choice1 = (MessageBoxResult)MessageBox.Show("Do you want to save the playlist?", "Choose", (System.Windows.Forms.MessageBoxButtons)MessageBoxButton.OKCancel);
+                    if (choice1 == MessageBoxResult.OK)
+                    {
+                        openPathToSave();
+                        SaveAsPlaylist();
+                    }
+                }
+            }
+        }
+        private void NewPlaylist(object sender, RoutedEventArgs e)
+        {
+            SaveOldPlaylist();
+            CreateNewPlayList();
         }
     }
 }

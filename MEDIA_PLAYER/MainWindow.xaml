@@ -425,6 +425,14 @@
                     Kind="MovieOpenPlayOutline" />
 
                     </Button>
+                    <Button Margin="10 0 10 0"
+                         Height="30" Width="30" Click="NewPlaylist"
+      IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
+      Style="{StaticResource MaterialDesignIconButton}"
+      ToolTip="MaterialDesignIconButton">
+                        <materialDesign:PackIcon
+        Kind="NewBox" />
+                    </Button>
                 </StackPanel>
                 <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Right">
 
@@ -440,7 +448,6 @@
 
                             <DataTemplate>
                                 <Border  CornerRadius="5" 
-                             
                                           >
                                     <materialDesign:Card Style="{DynamicResource CardStyle1}"
                                           Padding="0"
@@ -457,6 +464,7 @@
                                                 <Border CornerRadius="5" 
                                                 Padding="2" >
                                                     <Image Source="{Binding imageReview}"></Image>
+                                                    
                                                 </Border>
                                                 <StackPanel Grid.Column="1" 
                                                     Orientation="Horizontal" 
@@ -498,7 +506,7 @@
 
                 </Border>
             </Grid>
-            <Grid MouseWheel="Grid_MouseWheel"
+            <Grid MouseWheel="Grid_MouseWheel" 
                      MouseEnter="DisplaySlider"
                             MouseLeave="NoneDisplaySlider" >
 
@@ -570,7 +578,8 @@
 
                 </Border>
 
-                <StackPanel Grid.Row="1" Name="StackpannelMedia"
+                <StackPanel Grid.Row="1" Name="StackpannelMedia" Orientation="Vertical" HorizontalAlignment="Center"
+                          VerticalAlignment="Center"  
                            >
 
                     <Image  Name="AudiaPlayer"

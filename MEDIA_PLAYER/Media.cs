@@ -7,8 +7,6 @@ namespace MEDIA_PLAYER
 {
     class Media: INotifyPropertyChanged
     {
-       
-        public int Order { get; set; }
         public string File_Path { get; set; }
 
         public double Duration_length { get; set; }
