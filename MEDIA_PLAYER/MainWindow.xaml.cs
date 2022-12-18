@@ -23,6 +23,12 @@ using System.Windows.Controls.Ribbon.Primitives;
 using MaterialDesignThemes.Wpf;
 using System.Diagnostics.Contracts;
 using System.Threading;
+using System.Text.Json;
+using System.Windows.Markup;
+using static System.Windows.Forms.Design.AxImporter;
+using System.Xml;
+using System.Text.Json.Nodes;
+using Newtonsoft.Json;
 
 namespace MEDIA_PLAYER
 {
@@ -39,6 +45,7 @@ namespace MEDIA_PLAYER
         private ObservableCollection<string> _prevListName = new ObservableCollection<string>() { "Remove all"};
         private List<string> _prevListFullPathName = new List<string>();
         private string saveRecentFile = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "RecentFile.json");
+        private string configAutoSave = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "corgi.json");
         //play media
         private double speedup = 1;
         private bool mediaPlayerIsPlaying = false;
@@ -58,6 +65,59 @@ namespace MEDIA_PLAYER
         MediaPlayer _Slider = new MediaPlayer();
         double nowPosion = 0;
         bool isDark = false;
+
+        private void SaveConfig()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("{");
+            stringBuilder.AppendLine($"\"darkmode\":{(isDark==true ? "true":"false")},");
+            stringBuilder.AppendLine($"\"autoplay\":{(autoplay == true ? "true" : "false")},");
+            stringBuilder.AppendLine($"\"volumn\":{mePlayer.Volume.ToString().Replace(',','.')},");
+            stringBuilder.AppendLine($"\"speedup\":{mePlayer.SpeedRatio.ToString().Replace(',', '.')},");
+            stringBuilder.AppendLine($"\"repeat\":{mediaPlayerIsRepeat},");
+            stringBuilder.AppendLine($"\"left\":{this.Left},");
+            stringBuilder.AppendLine($"\"top\":{this.Top},");
+            stringBuilder.AppendLine($"\"height\":{this.Height},");
+            stringBuilder.AppendLine($"\"width\":{this.Width}");
+            stringBuilder.AppendLine("}");
+              
+            File.WriteAllText(configAutoSave, stringBuilder.ToString());
+        }
+        public class configA
+        {
+            public bool darkmode { get; set; }
+            public bool autoplay { get; set; }
+            public float volumn { get; set; }
+            public float speedup { get; set; }
+            public int mediaPlayerIsRepeat { get; set; }
+            public double left { get; set; }
+            public double top { get; set; }
+            public double height { get; set; }
+                public double width { get; set; }
+
+
+        }
+
+        private void LoadConfig()
+        {
+            if (!File.Exists(configAutoSave)) return;
+            string loaded = File.ReadAllText(configAutoSave);
+
+            dynamic pos = JsonObject.Parse(loaded);
+
+            Debug.WriteLine(pos["darkmode"]);
+            isDark = bool.Parse(pos["darkmode"]);
+            autoplay = pos["autoplay"];
+            mePlayer.Volume = pos["volumn"];
+            mePlayer.SpeedRatio =pos["speedup"];
+            mediaPlayerIsRepeat =pos["mediaPlayerIsRepeat"];
+            this.Left = pos["left"];
+            this.Top =pos["top"];
+            this.Height = pos["height"];
+            this.Width =pos["width"];
+
+
+        }
         private void SetPrimaryColor(Color color,Color color2)
         {
             PaletteHelper paletteHelper = new PaletteHelper();
@@ -139,7 +199,7 @@ namespace MEDIA_PLAYER
             string path = "";
             while ((path = input.ReadLine()) != null)
             {
-                if (path != "")
+                if (path != "" && File.Exists(path))
                 {
                     Debug.WriteLine("save " + path);
                     _prevListFullPathName.Add(path);
@@ -148,6 +208,8 @@ namespace MEDIA_PLAYER
             }
             Debug.WriteLine(_mediaList.Count);
             input.Close();
+            LoadConfig();
+         
         }
      
         private string _shortName
@@ -293,13 +355,21 @@ namespace MEDIA_PLAYER
         }
         private void updatePreList()
         {
-            for (var i=0;i<_prevListFullPathName.Count;i++)
+            if(_currentPlaying=="") return;
+            if (string.Compare(_currentPlaying, _prevListFullPathName[_prevListFullPathName.Count-1]) == 0) return;
+              for (var i=0;i<_prevListFullPathName.Count;i++)
             {
                 if (string.Compare(_currentPlaying, _prevListFullPathName[i]) == 0)
                 {
                    // _prevList.RemoveAt(i);
-                    _prevListName.RemoveAt(i+1);
-                    _prevListFullPathName.RemoveAt(i);
+                   
+                   _prevListName.RemoveAt(i+1);
+                   _prevListFullPathName.RemoveAt(i);
+                  
+                    Debug.WriteLine("==== Bao thu ====");
+                    Debug.WriteLine(_prevListName);
+                    Debug.WriteLine(_prevListFullPathName);
+                    Debug.WriteLine("==== Bao thu ====");
                     break;
                 }
             }
@@ -366,6 +436,11 @@ namespace MEDIA_PLAYER
             var bitmap = new BitmapImage(new Uri("images/play.png", UriKind.Relative));
             _add.imageReview = bitmap;
             MediaPlayer mediaPlayer = new MediaPlayer();
+            if (!File.Exists(path)) return;
+            mediaPlayer.MediaFailed += (o, args) =>
+            {
+                MessageBox.Show("Media Failed!!");
+            };
             mediaPlayer.Open(new Uri(path));
             while (!mediaPlayer.NaturalDuration.HasTimeSpan) ;
             var time = mediaPlayer.NaturalDuration.TimeSpan.TotalSeconds;
@@ -476,40 +551,42 @@ namespace MEDIA_PLAYER
         }
         private void Play_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = (mePlayer != null) && (mePlayer.Source != null)&&(mediaPlayerIsPlaying!=true);
-            if (e.CanExecute || mePlayer.Source == null)
-            {
-                PlayBtn.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                PlayBtn.Visibility = Visibility.Collapsed;
-
-            }
+            e.CanExecute = (mePlayer != null) && (mePlayer.Source != null);
+        
         }
 
         private void Play_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            mePlayer.Play();
-            mediaPlayerIsPlaying = true;
+            if (mediaPlayerIsPlaying)
+            {
+                mePlayer.Pause();
+                mediaPlayerIsPlaying = false;
+                PlayBtn.Visibility = Visibility.Visible;
+                PauseBtn.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                mePlayer.Play();
+                mediaPlayerIsPlaying = true;
+                PauseBtn.Visibility = Visibility.Visible;
+                PlayBtn.Visibility = Visibility.Collapsed;
+                
+            }
+
+  
+        
         }
 
         private void Pause_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = mediaPlayerIsPlaying;
-            if (e.CanExecute)
-            {
-                PauseBtn.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                PauseBtn.Visibility = Visibility.Collapsed;
-
-            }
+            
         }
 
         private void Pause_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            if (!mediaPlayerIsPlaying) return;
+
             mePlayer.Pause();
             mediaPlayerIsPlaying = false;
         }
@@ -1018,6 +1095,8 @@ namespace MEDIA_PLAYER
             {
                 if (path != "")
                 {
+                    if (!File.Exists(path)) continue;
+                    
                     Debug.WriteLine("current+" + path);
                     if (IsVideoFile(path))
                     {
@@ -1048,6 +1127,7 @@ namespace MEDIA_PLAYER
             input.Close();
             progressbarLoadmedia.Visibility = Visibility.Collapsed;
             playlistIsChange = false;
+            MessageBox.Show("Doc file xong");
         }
 
         private void ChangeAutoPlay(object sender, RoutedEventArgs e)
@@ -1186,6 +1266,7 @@ namespace MEDIA_PLAYER
             StringBuilder writeFile = new StringBuilder();
             foreach (var i in _prevListFullPathName)
             {
+                if (!File.Exists(i)) continue;
                 writeFile.AppendLine(i);
             }
             Debug.WriteLine(writeFile.ToString());
@@ -1197,6 +1278,7 @@ namespace MEDIA_PLAYER
             //save recent files
             updatePreList();
             saveprevlist();
+            SaveConfig();
         }
 
         private void VolumnChange(object sender, RoutedPropertyChangedEventArgs<double> e)

@@ -28,9 +28,9 @@
         <KeyBinding Key="Space"
              
               Command="MediaCommands.Play" />
-        <KeyBinding Key="Space"
-              Modifiers="Control" 
-              Command="MediaCommands.Pause" />
+        <!--<KeyBinding Key="k"-->
+            
+              <!--Command="MediaCommands.Pause" />-->
         <KeyBinding Key="P"
               Modifiers="Control" 
               Command="MediaCommands.Stop" />
@@ -58,7 +58,7 @@
 
         <CommandBinding Command="ApplicationCommands.Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
         <CommandBinding Command="MediaCommands.Play" CanExecute="Play_CanExecute" Executed="Play_Executed" />
-        <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Pause_Executed" />
+        <CommandBinding Command="MediaCommands.Pause" CanExecute="Pause_CanExecute" Executed="Play_Executed" />
         <CommandBinding Command="MediaCommands.Stop" CanExecute="Stop_CanExecute" Executed="Stop_Executed" />
         <CommandBinding Command="MediaCommands.NextTrack" CanExecute="Next_CanExecute" Executed="Next_Executed" />
         <CommandBinding Command="MediaCommands.PreviousTrack" CanExecute="Prev_CanExecute" Executed="Prev_Executed" />
