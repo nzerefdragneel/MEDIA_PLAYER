@@ -585,7 +585,7 @@
                           VerticalAlignment="Center" 
                            Background="Black"
                            >
-
+                  
                     <Image  Name="AudiaPlayer"
                         gif:AnimationBehavior.SourceUri="images/mediaplay.gif" />
                     <MediaElement Name="mePlayer" StretchDirection="Both" 

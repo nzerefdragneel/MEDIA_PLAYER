@@ -29,6 +29,8 @@ using static System.Windows.Forms.Design.AxImporter;
 using System.Xml;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace MEDIA_PLAYER
 {
@@ -70,17 +72,24 @@ namespace MEDIA_PLAYER
         {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("{");
-            stringBuilder.AppendLine($"\"darkmode\":{(isDark==true ? "true":"false")},");
+            stringBuilder.AppendLine($"\"darkmode\":{(isDark == true ? "true" : "false")},");
             stringBuilder.AppendLine($"\"autoplay\":{(autoplay == true ? "true" : "false")},");
-            stringBuilder.AppendLine($"\"volumn\":{mePlayer.Volume.ToString().Replace(',','.')},");
+            stringBuilder.AppendLine($"\"volumn\":{mePlayer.Volume.ToString().Replace(',', '.')},");
             stringBuilder.AppendLine($"\"speedup\":{mePlayer.SpeedRatio.ToString().Replace(',', '.')},");
             stringBuilder.AppendLine($"\"repeat\":{mediaPlayerIsRepeat},");
+            stringBuilder.AppendLine($"\"shuffle\":{(mediaPlayerIsShuffling == true ? "true" : "false")},");
             stringBuilder.AppendLine($"\"left\":{this.Left},");
             stringBuilder.AppendLine($"\"top\":{this.Top},");
             stringBuilder.AppendLine($"\"height\":{this.Height},");
-            stringBuilder.AppendLine($"\"width\":{this.Width}");
+            stringBuilder.AppendLine($"\"width\":{this.Width},");
+            stringBuilder.AppendLine($"\"playlist\":");
+          
+
+            string json = JsonConvert.SerializeObject(_mediaList);
+            
+            stringBuilder.AppendLine(json);
             stringBuilder.AppendLine("}");
-              
+              Debug.WriteLine(stringBuilder.ToString());
             File.WriteAllText(configAutoSave, stringBuilder.ToString());
         }
         public class configA
@@ -102,21 +111,60 @@ namespace MEDIA_PLAYER
         {
             if (!File.Exists(configAutoSave)) return;
             string loaded = File.ReadAllText(configAutoSave);
-
+            
             dynamic pos = JsonObject.Parse(loaded);
 
-            Debug.WriteLine(pos["darkmode"]);
-            isDark = bool.Parse(pos["darkmode"]);
-            autoplay = pos["autoplay"];
-            mePlayer.Volume = pos["volumn"];
-            mePlayer.SpeedRatio =pos["speedup"];
-            mediaPlayerIsRepeat =pos["mediaPlayerIsRepeat"];
-            this.Left = pos["left"];
-            this.Top =pos["top"];
-            this.Height = pos["height"];
-            this.Width =pos["width"];
+        
+            isDark = pos["darkmode"].GetValue<bool>();
+            DarkMode.IsChecked = isDark;
+            Background();
 
+            autoplay = pos["autoplay"].GetValue<bool>();
+            AutoPlay();
 
+            mePlayer.Volume = pos["volumn"].GetValue<double>();
+            ChangeUiVolume();
+
+            mePlayer.SpeedRatio =pos["speedup"].GetValue<double>();
+            SpeedUpValue.Text = $"{mePlayer.SpeedRatio}x";
+           
+            mediaPlayerIsRepeat =pos["repeat"].GetValue<int>();
+            ChangeUIRepeat();
+
+            mediaPlayerIsShuffling = pos["shuffle"].GetValue<bool>();
+            ChangeUIShuffle();
+
+            this.Left = pos["left"].GetValue<double>();
+            this.Top =pos["top"].GetValue<double>();
+            this.Height = pos["height"].GetValue<double>();
+            this.Width =pos["width"].GetValue<double>();
+
+            var list = pos["playlist"];
+
+            foreach (var media in list)
+            {
+                string path = media["File_Path"].GetValue<string>();
+                double isNow = media["NowDurationLength"].GetValue<double>();
+             
+                if (IsVideoFile(path))
+                {
+                    add_Video_Image(path);
+                    _mediaList[_mediaList.Count - 1].NowDurationLength = isNow;
+                    AudiaPlayer.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    add_Audio_image(path);
+                    _mediaList[_mediaList.Count - 1].NowDurationLength = isNow;
+                }
+                if (mePlayer.Source == null)
+                {
+                    ChangeCurrentPlay(_mediaList.Count - 1);
+                    
+                }
+            
+            }
+            
         }
         private void SetPrimaryColor(Color color,Color color2)
         {
@@ -195,7 +243,6 @@ namespace MEDIA_PLAYER
             if (!File.Exists(saveRecentFile)) return;
             StreamReader input;
             input = new StreamReader(saveRecentFile);
-           
             string path = "";
             while ((path = input.ReadLine()) != null)
             {
@@ -209,7 +256,6 @@ namespace MEDIA_PLAYER
             Debug.WriteLine(_mediaList.Count);
             input.Close();
             LoadConfig();
-         
         }
      
         private string _shortName
@@ -485,7 +531,6 @@ namespace MEDIA_PLAYER
             };
             mediaPlayer.ScrubbingEnabled = true;
             mediaPlayer.Open(new Uri(sFullname_Path_of_Video));
-            mediaPlayer.Stop();
             mediaPlayer.Position = TimeSpan.FromSeconds(0);
 
             while (!mediaPlayer.NaturalDuration.HasTimeSpan);
@@ -557,6 +602,8 @@ namespace MEDIA_PLAYER
 
         private void Play_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            Debug.WriteLine("playyyyyy");
+            Debug.WriteLine(_mediaList[_currentPlayingIndex].NowDurationLength);
             if (mediaPlayerIsPlaying)
             {
                 mePlayer.Pause();
@@ -570,11 +617,10 @@ namespace MEDIA_PLAYER
                 mediaPlayerIsPlaying = true;
                 PauseBtn.Visibility = Visibility.Visible;
                 PlayBtn.Visibility = Visibility.Collapsed;
-                
             }
-
-  
-        
+            Debug.WriteLine(_mediaList[_currentPlayingIndex].NowDurationLength);
+            Debug.WriteLine($"position:{mePlayer.Position}");
+            mePlayer.Position =TimeSpan.FromSeconds( _mediaList[_currentPlayingIndex].NowDurationLength);
         }
 
         private void Pause_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -586,7 +632,6 @@ namespace MEDIA_PLAYER
         private void Pause_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (!mediaPlayerIsPlaying) return;
-
             mePlayer.Pause();
             mediaPlayerIsPlaying = false;
         }
@@ -891,6 +936,8 @@ namespace MEDIA_PLAYER
         {
             mediaPlayerIsPlaying = false;
             userIsDraggingSlider = false;
+            PlayBtn.Visibility = Visibility.Visible;
+            PauseBtn.Visibility = Visibility.Collapsed;
             _currentPlaying = string.Empty;
             _currentPlayingIndex = 0;
             mePlayer.Source = null;
@@ -932,16 +979,13 @@ namespace MEDIA_PLAYER
                 }
             }
         }
-
-        private void RepeatMode(object sender, RoutedEventArgs e)
+        private void ChangeUIRepeat()
         {
-          mediaPlayerIsRepeat =mediaPlayerIsRepeat==1?-1:mediaPlayerIsRepeat+1;
-            
-          if (mediaPlayerIsRepeat == -1)
+            if (mediaPlayerIsRepeat == -1)
             {
                 RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.RepeatOff;
             }
-            else if (mediaPlayerIsRepeat==0)
+            else if (mediaPlayerIsRepeat == 0)
             {
                 mediaPlayerIsShuffling = false;
                 ShuffleIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.ShuffleDisabled;
@@ -953,6 +997,13 @@ namespace MEDIA_PLAYER
                 ShuffleIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.ShuffleDisabled;
                 RepeatIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.Repeat;
             }
+        }
+
+        private void RepeatMode(object sender, RoutedEventArgs e)
+        {
+          mediaPlayerIsRepeat =mediaPlayerIsRepeat==1?-1:mediaPlayerIsRepeat+1;
+            ChangeUIRepeat();
+          
         }
 
         //sửa cái này:v
@@ -981,6 +1032,7 @@ namespace MEDIA_PLAYER
         private void SaveAsPlaylist()
         {
             StreamWriter output;
+            if (playlistPath == "") return;
             output = new StreamWriter(playlistPath);
             StringBuilder writeFile = new StringBuilder();
             for (int i = 0; i < _mediaList.Count; i++)
@@ -1047,9 +1099,8 @@ namespace MEDIA_PLAYER
             ChangeCurrentPlay(prev);
         }
 
-        private void clickShuffleBtn(object sender, RoutedEventArgs e)
+        private void ChangeUIShuffle()
         {
-            mediaPlayerIsShuffling = !mediaPlayerIsShuffling;
             if (mediaPlayerIsShuffling == true)
             {
                 mediaPlayerIsRepeat = -1;
@@ -1064,11 +1115,15 @@ namespace MEDIA_PLAYER
                 ShuffleIcon.Kind = MaterialDesignThemes.Wpf.PackIconKind.ShuffleDisabled;
             }
         }
+        private void clickShuffleBtn(object sender, RoutedEventArgs e)
+        {
+            mediaPlayerIsShuffling = !mediaPlayerIsShuffling;
+            ChangeUIShuffle();
+        }
 
         private void Open_Playlist(object sender, RoutedEventArgs e)
         {
             SaveOldPlaylist();
-            
             var dialog = new OpenFileDialog();
             dialog.Filter = "Playlist (*.Plt)|*.Plt";
             if (dialog.ShowDialog() != true)
@@ -1079,11 +1134,12 @@ namespace MEDIA_PLAYER
             shuffleIndex = -1;
             _shuffleList.Clear();
             mediaPlayerIsPlaying = false;
+            PlayBtn.Visibility = Visibility.Visible;
+            PauseBtn.Visibility = Visibility.Collapsed;
             userIsDraggingSlider = false;
             _currentPlaying = string.Empty;
             _currentPlayingIndex = 0;
             mePlayer.Source = null;
-          
             playlistPath = dialog.FileName;
             Nameplaylist.Text = Path.GetFileNameWithoutExtension(playlistPath);
             StreamReader input;
@@ -1129,16 +1185,15 @@ namespace MEDIA_PLAYER
             MessageBox.Show("Doc file xong");
         }
 
-        private void ChangeAutoPlay(object sender, RoutedEventArgs e)
+        private void AutoPlay()
         {
-            autoplay = !autoplay;
-            
+           
             Debug.WriteLine(autoplay);
             if (autoplay == true)
             {
                 AutoPlayToggleBtn.IsChecked = true;
-               
-         
+
+
                 if (sliProgress.Value + 1 > sliProgress.Maximum)
                 {
                     playNextMeda();
@@ -1147,8 +1202,13 @@ namespace MEDIA_PLAYER
             else
             {
                 AutoPlayToggleBtn.IsChecked = false;
-              
+
             }
+        }
+        private void ChangeAutoPlay(object sender, RoutedEventArgs e)
+        {
+            autoplay = !autoplay;
+            AutoPlay();
         }
 
         private void DisplaySlider(object sender, MouseEventArgs e)
@@ -1222,6 +1282,8 @@ namespace MEDIA_PLAYER
             shuffleIndex = -1;
             _shuffleList.Clear();
             mediaPlayerIsPlaying = false;
+            PlayBtn.Visibility = Visibility.Visible;
+            PauseBtn.Visibility = Visibility.Collapsed;
             userIsDraggingSlider = false;
             _currentPlaying = string.Empty;
             _currentPlayingIndex = 0;
@@ -1275,31 +1337,36 @@ namespace MEDIA_PLAYER
         private void Window_Closed(object sender, EventArgs e)
         {
             //save recent files
+            SaveConfig();
             updatePreList();
             saveprevlist();
-            SaveConfig();
+            
         }
 
-        private void VolumnChange(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void ChangeUiVolume()
         {
-            var value = pbVolume.Value;
-            mePlayer.Volume = value;
-
             VolumnMute.Visibility = Visibility.Collapsed;
-            VolumnNotMute.Visibility=Visibility.Collapsed;
+            VolumnNotMute.Visibility = Visibility.Collapsed;
             pbVolume.Visibility = Visibility.Visible;
-            if (value == 0)
+            if (mePlayer.Volume == 0)
             {
-                pbVolume.Visibility = Visibility.Collapsed;   
+                pbVolume.Visibility = Visibility.Collapsed;
                 VolumnMute.Visibility = Visibility.Visible;
             }
             else
             {
                 VolumnNotMute.Visibility = Visibility.Visible;
-                if (value <= 0.33) { VolumnItem.Kind = PackIconKind.VolumeLow; return; }
-                if (value <= 0.66) { VolumnItem.Kind = PackIconKind.VolumeMedium; return; }
-                if (value >0.66 ) { VolumnItem.Kind = PackIconKind.VolumeHigh; return; }
+                if (mePlayer.Volume <= 0.33) { VolumnItem.Kind = PackIconKind.VolumeLow; return; }
+                if (mePlayer.Volume <= 0.66) { VolumnItem.Kind = PackIconKind.VolumeMedium; return; }
+                if (mePlayer.Volume > 0.66) { VolumnItem.Kind = PackIconKind.VolumeHigh; return; }
             }
+        }
+        private void VolumnChange(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            var value = pbVolume.Value;
+            mePlayer.Volume = value;
+            ChangeUiVolume();
+           
         }
 
         private void Mute(object sender, RoutedEventArgs e)
@@ -1327,9 +1394,8 @@ namespace MEDIA_PLAYER
         private void SpeedChange(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             double value = Math.Round( SpeedSlider.Value,2);
-            
-            SpeedUpValue.Text = $"{value}x";
             speedup = value;
+            SpeedUpValue.Text = $"{value}x";
             mePlayer.SpeedRatio = value;
         }
     }
