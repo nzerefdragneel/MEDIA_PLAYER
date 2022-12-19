@@ -611,7 +611,6 @@ namespace MEDIA_PLAYER
         private void Grid_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             mePlayer.Volume += (e.Delta > 0) ? 0.1 : -0.1;
-            
         }
 
         private void player_MediaOpened(object sender, RoutedEventArgs e)
