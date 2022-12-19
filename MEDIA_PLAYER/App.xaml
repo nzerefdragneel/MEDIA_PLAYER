@@ -41,16 +41,16 @@
                     <SolidColorBrush x:Key="SecondaryHueMidForegroundBrush" Color="{StaticResource Accent200Foreground}"/>
                 </ResourceDictionary>
                 <ResourceDictionary>
-                    <!-- primary -->
-                    <SolidColorBrush x:Key="PrimaryLightBrush" Color="#F0E9D2"/>
-                    <SolidColorBrush x:Key="PrimaryLightForegroundBrush" Color="#181D31"/>
-                    <SolidColorBrush x:Key="PrimaryMidBrush" Color="#495579"/>
-                    <SolidColorBrush x:Key="PrimaryMidForegroundBrush" Color="#E6DDC4"/>
-                    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#181D31"/>
-                    <SolidColorBrush x:Key="PrimaryDarkForegroundBrush" Color="#F0E9D2"/>
-                    <!-- accent -->
-                    <SolidColorBrush x:Key="TextBrush" Color="#5C5B5E"/>
-                    <SolidColorBrush x:Key="SecondaryHueMidForegroundBrush" Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="PrimaryLightBrush" Color="#222831"/>
+                    <SolidColorBrush x:Key="PrimaryLightForegroundBrush" Color="#EEEEEE"/>
+                    <SolidColorBrush x:Key="PrimaryMidBrush" Color="#222831"/>
+                    <SolidColorBrush x:Key="PrimaryMidForegroundBrush" Color="#B55400"/>
+                    <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#EEEEEE"/>
+                    <SolidColorBrush x:Key="PrimaryDarkForegroundBrush" Color="#B55400"/>
+                    <SolidColorBrush x:Key="PrimaryCardBrush" Color="#393E46"/>
+                    <SolidColorBrush x:Key="PrimaryCardForegroundBrush" Color="#B55400"/>
+                    <SolidColorBrush x:Key="TextBrush" Color="#EEEEEE"/>
+                    <SolidColorBrush x:Key="SecondaryHueMidForegroundBrush" Color="#000000"/>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
 

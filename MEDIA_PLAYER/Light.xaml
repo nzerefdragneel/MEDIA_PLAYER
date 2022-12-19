@@ -9,7 +9,7 @@
     <SolidColorBrush x:Key="PrimaryMidForegroundBrush" Color="#E6DDC4"/>
     <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#181D31"/>
     <SolidColorBrush x:Key="PrimaryDarkForegroundBrush" Color="#F0E9D2"/>
-    <SolidColorBrush x:Key="PrimaryCardBrush" Color="#362706"/>
+    <SolidColorBrush x:Key="PrimaryCardBrush" Color="#316B83"/>
     <SolidColorBrush x:Key="PrimaryCardForegroundBrush" Color="#E9E5D6"/>
     <!-- accent -->
     <SolidColorBrush x:Key="TextBrush" Color="#5F8D4E"/>
