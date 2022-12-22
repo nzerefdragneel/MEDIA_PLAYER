@@ -317,7 +317,7 @@
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="100"></ColumnDefinition>
             </Grid.ColumnDefinitions>
-            <StackPanel Width="80" HorizontalAlignment="Left" VerticalAlignment="Center">
+            <!--<StackPanel Width="80" HorizontalAlignment="Left" VerticalAlignment="Center">
                 <ComboBox Style="{StaticResource MyComboBox}" Text="để tạm"  IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged"  >
 
                     <ComboBoxItem>Play: Ctrl+X</ComboBoxItem>
@@ -327,7 +327,7 @@
                     <ComboBoxItem>Next: right</ComboBoxItem>
                     <ComboBoxItem>Prev: left</ComboBoxItem>
                 </ComboBox>
-            </StackPanel>
+            </StackPanel>-->
 
             <Button Name="HiddenButton"   Grid.Column="1" Click="HiddenBtn"
                     Padding="0 0 0 0"
@@ -404,7 +404,7 @@
                               Style="{StaticResource MaterialDesignIconButton}"
                         BorderBrush="Transparent"
                         
-                  ToolTip="Add media file">
+                  ToolTip="Save (Ctrl+S )">
                         <materialDesign:PackIcon
                               Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                       
@@ -430,7 +430,7 @@
                          Height="30" Width="30" Click="NewPlaylist"
       IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
       Style="{StaticResource MaterialDesignIconButton}"
-      ToolTip="MaterialDesignIconButton">
+      ToolTip="New Playlist">
                         <materialDesign:PackIcon
         Kind="NewBox" />
                     </Button>
@@ -530,7 +530,7 @@
                   Style="{StaticResource MaterialDesignIconButton}"
                                    
       BorderThickness="0"
-                      ToolTip="Add all media files">
+                      ToolTip="Open media files (ctrl + O)">
                             <materialDesign:PackIcon
                             Foreground="{DynamicResource PrimaryLightForegroundBrush}"
                     Kind="FolderOpen" />
@@ -641,6 +641,7 @@
                         <Slider x:Name="sliProgress" Grid.Row="2"   
                                 VerticalAlignment="Center"
                          Style="{StaticResource Horizontal_Slider}"
+                               MouseLeave="CheckingMouseLeave"
                             Minimum="0"   Thumb.DragStarted="sliProgress_DragStarted" Thumb.DragCompleted="sliProgress_DragCompleted"
                             Value="0" ValueChanged="sliProgress_ValueChanged" 
                                 IsMoveToPointEnabled="True"
@@ -677,7 +678,7 @@
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                         VerticalAlignment="Center"
-                  ToolTip="Next">
+                  ToolTip="Prev 5s (Left)">
                             <materialDesign:PackIcon
                          Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="SkipBackward" />
@@ -688,7 +689,7 @@
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                         VerticalAlignment="Center"
-                  ToolTip="Click to start media" Height="30" Width="30">
+                  ToolTip="Prev  (Ctrl + left)" Height="30" Width="30">
                             <materialDesign:PackIcon
                             Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="SkipPrevious" />
@@ -698,7 +699,7 @@
                         VerticalAlignment="Center"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
-                  ToolTip="Click to stop media">
+                  ToolTip="Stop (Ctrl + P)">
                             <materialDesign:PackIcon
                           Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="Stop" />
@@ -709,7 +710,7 @@
                   Command="MediaCommands.Play"  Width="30"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}" 
-                  ToolTip="Click to start media" Height="30">
+                  ToolTip="Play (space)" Height="30">
 
                             <materialDesign:PackIcon
                            Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
@@ -719,9 +720,10 @@
                    x:Name="PauseBtn"
                   Command="MediaCommands.Pause" Height="30" Width="30"
                         VerticalAlignment="Center"
+                            Visibility="Collapsed"
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
-                  ToolTip="Click to pause media">
+                  ToolTip="Pause (space)">
                             <materialDesign:PackIcon
                            Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="Pause" />
@@ -731,7 +733,7 @@
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                         VerticalAlignment="Center"
-                  ToolTip="Next">
+                  ToolTip="Next (Ctrl + right)">
                             <materialDesign:PackIcon
                            Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="SkipNext" />
@@ -741,7 +743,7 @@
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Style="{StaticResource MaterialDesignIconButton}"
                         VerticalAlignment="Center"
-                  ToolTip="Next">
+                  ToolTip="Next (Right)">
                             <materialDesign:PackIcon
                            Foreground="{DynamicResource PrimaryLightForegroundBrush}" 
                     Kind="SkipForward" />

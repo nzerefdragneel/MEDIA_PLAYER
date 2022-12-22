@@ -402,6 +402,8 @@ namespace MEDIA_PLAYER
         private void updatePreList()
         {
             if(_currentPlaying=="") return;
+            if (_prevListFullPathName.Count == 0) return;
+            // Loi o day
             if (string.Compare(_currentPlaying, _prevListFullPathName[_prevListFullPathName.Count-1]) == 0) return;
               for (var i=0;i<_prevListFullPathName.Count;i++)
             {
@@ -634,6 +636,8 @@ namespace MEDIA_PLAYER
             if (!mediaPlayerIsPlaying) return;
             mePlayer.Pause();
             mediaPlayerIsPlaying = false;
+            //PlayBtn.Visibility = Visibility.Visible;
+            //PauseBtn.Visibility = Visibility.Collapsed;
         }
 
         private void Stop_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -1397,6 +1401,19 @@ namespace MEDIA_PLAYER
             speedup = value;
             SpeedUpValue.Text = $"{value}x";
             mePlayer.SpeedRatio = value;
+        }
+
+        private void CheckingMouseLeave(object sender, MouseEventArgs e)
+        {
+            if(userIsDraggingSlider==true)
+            {
+                userIsDraggingSlider = false;
+                mePlayer.Position = TimeSpan.FromSeconds(sliProgress.Value);
+                _mediaList[_currentPlayingIndex].NowDurationLength = sliProgress.Value;
+                CanvasSeeking.Visibility = Visibility.Collapsed;
+                lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
+            }
+          
         }
     }
 }
