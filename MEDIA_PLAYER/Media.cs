@@ -29,5 +29,10 @@ namespace MEDIA_PLAYER
         }
         public event PropertyChangedEventHandler? PropertyChanged;
     }
+    class RGB
+    {
+        public Color Top { get; set; }
 
+        public Color Bottom { get; set; }
+    }
 }

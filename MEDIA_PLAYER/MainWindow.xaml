@@ -13,14 +13,15 @@
          TextOptions.TextFormattingMode="Ideal"
          TextOptions.TextRenderingMode="Auto"
           materialDesign:ButtonAssist.CornerRadius="50"
-         Background="{DynamicResource PrimaryForegroundBrush}"
+        
+         Background="Transparent"
          Foreground="{DynamicResource PrimaryMidBrush}"
          FontFamily="{DynamicResource MaterialDesignFont}"
          Title="Media Player" Height="700" Width="1000"
         Loaded="Window_Loaded" Closed="Window_Closed"
         >
 
-
+    <!--Background="{DynamicResource PrimaryForegroundBrush}"-->
     <Window.InputBindings>
         <KeyBinding Key="O" 
               Modifiers="Control" 
@@ -508,21 +509,27 @@
                 </Border>
             </Grid>
             <Grid MouseWheel="Grid_MouseWheel" 
-                 
-                  
                   Panel.ZIndex="2"
                 >
-
+                
                 <Grid.RowDefinitions>
                     <RowDefinition Height="30" />
                     <RowDefinition Height="*"></RowDefinition>
                     <RowDefinition Height="20"/>
                     <RowDefinition Height="30"></RowDefinition>
                 </Grid.RowDefinitions>
-                <Border BorderBrush="Black" BorderThickness="0">
+           
+                <Border Grid.RowSpan="1" Grid.Row="0" BorderBrush="Black" BorderThickness="0">
+                    <Border.Background>
+                        <LinearGradientBrush>
+                            <GradientStop Color="{DynamicResource PrimaryForegroundBrush}" Offset="0.0"/>
+                            <GradientStop Color="{DynamicResource Primary600}" Offset="0.5"/>
+                            <GradientStop Color="{DynamicResource PrimaryForegroundBrush}" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
                     <ToolBar Grid.Row="0"   Padding="0 0 0 0" HorizontalAlignment="Center"  
                              Background="{DynamicResource PrimaryLightBrush}">
-
+                       
                         <Button
                          Click="AddFiles"
                         Background="Transparent"
@@ -580,21 +587,35 @@
                     </ToolBar>
 
                 </Border>
-
-                <StackPanel Grid.Row="1" Name="StackpannelMedia" Orientation="Vertical" HorizontalAlignment="Center"
+                <Grid Grid.Row="1">
+                    <Border BorderBrush="Black" BorderThickness="0"  x:Name="MidColor" >
+                    <Border.Background>
+                            <LinearGradientBrush StartPoint="0 0" EndPoint="0 1">
+                            <GradientStop Color="{DynamicResource PrimaryForegroundBrush}" Offset="0.0"/>
+                            <GradientStop x:Name="TopRGB"  Color="{Binding}" Offset="0.1"/>
+                            <GradientStop x:Name="BottomRGB"  Color="{Binding}" Offset="0.9"/>
+                            <GradientStop Color="{DynamicResource PrimaryForegroundBrush}" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <StackPanel   Name="StackpannelMedia" Orientation="Vertical" HorizontalAlignment="Center"
                           VerticalAlignment="Center" 
-                           Background="Black"
+                           Background="Transparent"
                            >
-                  
-                    <Image  Name="AudiaPlayer"
+
+
+                        <Image  Name="AudiaPlayer" 
                         gif:AnimationBehavior.SourceUri="images/mediaplay.gif" />
-                    <MediaElement Name="mePlayer" StretchDirection="Both" 
+
+                        <MediaElement Name="mePlayer" StretchDirection="Both" 
                                   MediaOpened="player_MediaOpened" 
-                                  MediaEnded="player_MediaEnded"  Grid.Row="1" LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
-                    </MediaElement>
+                                  MediaEnded="player_MediaEnded"   LoadedBehavior="Manual" Margin="0,0,0,0"  Stretch="Uniform"  >
 
-                </StackPanel>
+                        </MediaElement>
 
+
+                    </StackPanel>
+                </Border>
+                </Grid>
                 <StatusBar Grid.Row="2"
                         
                            Padding="6 0 6 0"

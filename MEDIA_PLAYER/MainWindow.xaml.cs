@@ -31,6 +31,8 @@ using System.Text.Json.Nodes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using System.Threading.Tasks;
+
 
 namespace MEDIA_PLAYER
 {
@@ -54,6 +56,7 @@ namespace MEDIA_PLAYER
         private bool userIsDraggingSlider = false;
         private string _currentPlaying = string.Empty;
         private int _currentPlayingIndex = 0;
+        //MediaPlayer _ShowBackground = new MediaPlayer();
 
         Random rnd = new Random();
 
@@ -67,7 +70,10 @@ namespace MEDIA_PLAYER
         MediaPlayer _Slider = new MediaPlayer();
         double nowPosion = 0;
         bool isDark = false;
+        RGB RGB =new RGB();
 
+
+      
         private void SaveConfig()
         {
             StringBuilder stringBuilder = new StringBuilder();
@@ -84,7 +90,6 @@ namespace MEDIA_PLAYER
             stringBuilder.AppendLine($"\"width\":{this.Width},");
             stringBuilder.AppendLine($"\"playlist\":");
           
-
             string json = JsonConvert.SerializeObject(_mediaList);
             
             stringBuilder.AppendLine(json);
@@ -236,6 +241,28 @@ namespace MEDIA_PLAYER
             }
 
         }
+        //public Color GetColorAt(Point location)
+        //{
+        //    using (Graphics gdest = Graphics.FromImage(screenPixel))
+        //    {
+        //        using (Graphics gsrc = Graphics.FromHwnd(IntPtr.Zero))
+        //        {
+        //            IntPtr hSrcDC = gsrc.GetHdc();
+        //            IntPtr hDC = gdest.GetHdc();
+        //            int retval = BitBlt(hDC, 0, 0, 1, 1, hSrcDC, location.X, location.Y, (int)CopyPixelOperation.SourceCopy);
+        //            gdest.ReleaseHdc();
+        //            gsrc.ReleaseHdc();
+        //        }
+        //    }
+
+        //    return screenPixel.GetPixel(0, 0);
+        //}
+
+        private int BitBlt(IntPtr hDC, int v1, int v2, int v3, int v4, IntPtr hSrcDC, int x, int y, int sourceCopy)
+        {
+            throw new NotImplementedException();
+        }
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             PlayListView.ItemsSource = _mediaList;
@@ -253,11 +280,16 @@ namespace MEDIA_PLAYER
                     _prevListName.Add(Path.GetFileNameWithoutExtension(path));
                 }
             }
-            Debug.WriteLine(_mediaList.Count);
+           
+          
+            MidColor.DataContext = RGB;
             input.Close();
+
+
+
             LoadConfig();
         }
-     
+      
         private string _shortName
         {
             get
@@ -275,6 +307,8 @@ namespace MEDIA_PLAYER
         {
             ".MP3",".WAV",".WAVE",".WMA"
         };
+        private System.Drawing.Image screenPixel;
+
         private void timer_Tick(object sender, EventArgs e)
         {
             if ((mePlayer.Source != null) && (mePlayer.NaturalDuration.HasTimeSpan) && (!userIsDraggingSlider))
@@ -386,6 +420,7 @@ namespace MEDIA_PLAYER
 
                         Debug.WriteLine("path", _currentPlaying);
                         mePlayer.Source = new Uri(_currentPlaying);
+                        //_ShowBackground.Open(new Uri(_currentPlaying));
                         mePlayer.Play();
                         mePlayer.Stop();
                         Debug.WriteLine("ok");
@@ -441,6 +476,8 @@ namespace MEDIA_PLAYER
             if (File.Exists(_mediaList[current].File_Path))
             {
                 updatePreList();
+                ChangeColorBackGround(_mediaList[current].imageReview);
+               
                 _currentPlaying = _mediaList[current].File_Path;
                 if (IsAudioFile(_currentPlaying))
                 {
@@ -452,6 +489,7 @@ namespace MEDIA_PLAYER
                 }
                 _currentPlayingIndex = current;
                 mePlayer.Source = new Uri(_currentPlaying);
+                //_ShowBackground.Open(new Uri(_currentPlaying));
                 mePlayer.Position = TimeSpan.FromSeconds(_mediaList[current].NowDurationLength);
                 if (mediaPlayerIsPlaying == true) mePlayer.Play();
                 else mePlayer.Pause();
@@ -463,6 +501,7 @@ namespace MEDIA_PLAYER
                 MessageBox.Show("Media not found\n Remove it", "notification");
                 _mediaList.RemoveAt(current);
             }
+
             
         }
         private void Repeat()
@@ -518,6 +557,44 @@ namespace MEDIA_PLAYER
           
             //< set Image >
         }
+        private void ChangeColorBackGround(ImageSource bmp)
+        {
+            CroppedBitmap cb = new CroppedBitmap(bmp as BitmapSource,
+            new Int32Rect(80, 1, 1, 1));
+            var pixels = new byte[4];
+            try
+            {
+                cb.CopyPixels(pixels, 4, 0);
+            }
+            catch (Exception ex)
+            {
+                
+            }
+            Console.WriteLine(pixels[0] + ":" + pixels[1] +
+                              ":" + pixels[2] + ":" + pixels[3]);
+            //var x = new SolidColorBrush(Color.FromRgb(pixels[2], pixels[1], pixels[0]));
+            RGB.Top = Color.FromRgb(pixels[2], pixels[1], pixels[0]);
+            int x, y;
+        
+            cb = new CroppedBitmap(bmp as BitmapSource,
+            new Int32Rect(60,80 , 1, 1));
+            
+            pixels = new byte[4];
+            try
+            {
+                cb.CopyPixels(pixels, 4, 0);
+            }
+            catch (Exception ex)
+            {
+            }
+            RGB.Bottom= Color.FromRgb(pixels[2], pixels[1], pixels[0]);
+            //MidColor.DataContext = RGB;
+            TopRGB.Color = RGB.Top;
+            BottomRGB.Color = RGB.Bottom;
+           
+
+        }
+
         private void add_Video_Image(string sFullname_Path_of_Video)
         {
             playlistIsChange = true;
@@ -557,8 +634,9 @@ namespace MEDIA_PLAYER
             RenderTargetBitmap bmp = new RenderTargetBitmap(160, 100, dpiX, dpiY, PixelFormats.Pbgra32);
             
             bmp.Render(drawingVisual);
+            
             _add.imageReview = bmp;
-         
+
             _mediaList.Add(_add);
             mediaPlayer = null;
 
@@ -705,6 +783,18 @@ namespace MEDIA_PLAYER
 
         }
 
+        private RenderTargetBitmap DrawImage()
+        {
+            DrawingVisual drawingVisual = new DrawingVisual();
+            DrawingContext drawingContext = drawingVisual.RenderOpen();
+            drawingContext.DrawVideo(_Slider, new Rect(0, 0, 120, 90));
+            drawingContext.Close();
+            double dpiX = 1 / 200;
+            double dpiY = 1 / 200;
+            RenderTargetBitmap bmp = new RenderTargetBitmap(120, 90, dpiX, dpiY, PixelFormats.Pbgra32);
+            bmp.Render(drawingVisual);
+            return bmp;
+        }
         private void sliProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (userIsDraggingSlider)
@@ -738,6 +828,19 @@ namespace MEDIA_PLAYER
                 lblProgressStatus.Text=newPosition.ToString(@"hh\:mm\:ss");
                 _mediaList[_currentPlayingIndex].NowDurationLength = value;
                 mePlayer.Position = newPosition;
+
+                //_ShowBackground.Position=newPosition;
+                //DrawingVisual drawingVisual = new DrawingVisual();
+                //DrawingContext drawingContext = drawingVisual.RenderOpen();
+                //drawingContext.DrawVideo(_ShowBackground, new Rect(0, 0, 120, 90));
+                //drawingContext.Close();
+                //double dpiX = 1 / 200;
+                //double dpiY = 1 / 200;
+                //RenderTargetBitmap bmp = new RenderTargetBitmap(120, 90, dpiX, dpiY, PixelFormats.Pbgra32);
+
+                //bmp.Render(drawingVisual);
+                //ImageSource img = bmp;
+                //ChangeColorBackGround(img);
             }
 
         }
@@ -848,6 +951,7 @@ namespace MEDIA_PLAYER
                         {
                             AudiaPlayer.Visibility = Visibility.Collapsed;
                             _currentPlaying = d;
+                            ChangeColorBackGround(_mediaList[_mediaList.Count - 1].imageReview);
                             mePlayer.Source = new Uri(d);
                             mePlayer.Play();
                             mePlayer.Stop();
@@ -1079,6 +1183,7 @@ namespace MEDIA_PLAYER
                         _currentPlayingIndex = next;
                         _currentPlaying = _mediaList[next].File_Path;
                         mePlayer.Source = new Uri(_currentPlaying);
+                        //_ShowBackground.Open(new Uri(_currentPlaying));
                         Repeat();
                     }
                     else
@@ -1171,6 +1276,7 @@ namespace MEDIA_PLAYER
                         _currentPlaying = path;
                         Debug.WriteLine("path", _currentPlaying);
                         mePlayer.Source = new Uri(_currentPlaying);
+                        //_ShowBackground.Open(new Uri(_currentPlaying));
                         mePlayer.Position = TimeSpan.FromSeconds(0);
                         mePlayer.Play();
                         mePlayer.Stop();
