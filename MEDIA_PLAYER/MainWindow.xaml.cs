@@ -155,7 +155,7 @@ namespace MEDIA_PLAYER
                 {
                     add_Video_Image(path);
                     _mediaList[_mediaList.Count - 1].NowDurationLength = isNow;
-                    AudiaPlayer.Visibility = Visibility.Collapsed;
+                  
                 }
                 else
                 {
@@ -165,7 +165,6 @@ namespace MEDIA_PLAYER
                 if (mePlayer.Source == null)
                 {
                     ChangeCurrentPlay(_mediaList.Count - 1);
-                    
                 }
             
             }
@@ -284,8 +283,6 @@ namespace MEDIA_PLAYER
           
             MidColor.DataContext = RGB;
             input.Close();
-
-
 
             LoadConfig();
         }
@@ -408,7 +405,7 @@ namespace MEDIA_PLAYER
                     if (IsVideoFile(path))
                     {
                         add_Video_Image(path);
-                        AudiaPlayer.Visibility = Visibility.Collapsed;
+                       
                     }
                     else
                     {
@@ -424,6 +421,11 @@ namespace MEDIA_PLAYER
                         mePlayer.Play();
                         mePlayer.Stop();
                         Debug.WriteLine("ok");
+                        _currentPlayingIndex = 0;
+                        if (IsAudioFile(path)) AudiaPlayer.Visibility = Visibility.Visible;
+                        else AudiaPlayer.Visibility = Visibility.Collapsed;
+                        ListViewItem rows = PlayListView.ItemContainerGenerator.ContainerFromIndex(0) as ListViewItem;
+                        if (rows != null) rows.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryDarkForegroundBrush"].ToString());
                         mePlayer.MediaFailed += (o, args) =>
                         {
                             MessageBox.Show("Media Failed!!");
@@ -476,25 +478,32 @@ namespace MEDIA_PLAYER
             if (File.Exists(_mediaList[current].File_Path))
             {
                 updatePreList();
-                ChangeColorBackGround(_mediaList[current].imageReview);
                
                 _currentPlaying = _mediaList[current].File_Path;
-                if (IsAudioFile(_currentPlaying))
-                {
-                    AudiaPlayer.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    AudiaPlayer.Visibility = Visibility.Collapsed;
-                }
+                Debug.WriteLine("player" +_currentPlaying);
+              
+                _currentPlaying = _mediaList[current].File_Path;
                 _currentPlayingIndex = current;
-                mePlayer.Source = new Uri(_currentPlaying);
+
+                mePlayer.Source = new Uri(_mediaList[current].File_Path);
                 //_ShowBackground.Open(new Uri(_currentPlaying));
                 mePlayer.Position = TimeSpan.FromSeconds(_mediaList[current].NowDurationLength);
                 if (mediaPlayerIsPlaying == true) mePlayer.Play();
                 else mePlayer.Pause();
                 sliProgress.Value = _mediaList[current].NowDurationLength;
                 lblProgressStatus.Text = _mediaList[current].NowDuration;
+
+                ChangeColorBackGround(_mediaList[current].imageReview);
+                Debug.WriteLine("path_", _mediaList[current].imageReview);
+                if (IsAudioFile(_mediaList[current].File_Path))
+                {
+                    AudiaPlayer.Visibility = Visibility.Visible;
+                    Debug.WriteLine("hiện+++++++++++++++++++++++++++++++++");
+                }
+                else
+                {
+                    AudiaPlayer.Visibility = Visibility.Collapsed;
+                }
             }
             else
             {
@@ -559,8 +568,9 @@ namespace MEDIA_PLAYER
         }
         private void ChangeColorBackGround(ImageSource bmp)
         {
+            if (IsAudioFile(_currentPlaying)) return;
             CroppedBitmap cb = new CroppedBitmap(bmp as BitmapSource,
-            new Int32Rect(80, 1, 1, 1));
+            new Int32Rect(2, 2, 1, 1));
             var pixels = new byte[4];
             try
             {
@@ -797,6 +807,7 @@ namespace MEDIA_PLAYER
         }
         private void sliProgress_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            if (_currentPlaying == "") return;
             if (userIsDraggingSlider)
             {
                 lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
@@ -951,7 +962,10 @@ namespace MEDIA_PLAYER
                         {
                             AudiaPlayer.Visibility = Visibility.Collapsed;
                             _currentPlaying = d;
+                            _currentPlayingIndex = 0;
                             ChangeColorBackGround(_mediaList[_mediaList.Count - 1].imageReview);
+                            ListViewItem rows = PlayListView.ItemContainerGenerator.ContainerFromIndex(0) as ListViewItem;
+                            if (rows != null) rows.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryDarkForegroundBrush"].ToString());
                             mePlayer.Source = new Uri(d);
                             mePlayer.Play();
                             mePlayer.Stop();
@@ -972,7 +986,9 @@ namespace MEDIA_PLAYER
                             mePlayer.Play();
                             mePlayer.Stop();
                             AudiaPlayer.Visibility = Visibility.Visible;
-
+                            _currentPlayingIndex = 0;
+                            ListViewItem rows = PlayListView.ItemContainerGenerator.ContainerFromIndex(0) as ListViewItem;
+                            if (rows != null) rows.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryDarkForegroundBrush"].ToString());
                             Debug.WriteLine("ok");
                             mePlayer.MediaFailed += (o, args) =>
                             {
@@ -1265,7 +1281,7 @@ namespace MEDIA_PLAYER
                     if (IsVideoFile(path))
                     {
                         add_Video_Image(path);
-                        AudiaPlayer.Visibility = Visibility.Collapsed;
+                      
                     }
                     else
                     {
@@ -1280,7 +1296,12 @@ namespace MEDIA_PLAYER
                         mePlayer.Position = TimeSpan.FromSeconds(0);
                         mePlayer.Play();
                         mePlayer.Stop();
+                        _currentPlayingIndex = 0;
+                        ListViewItem rows = PlayListView.ItemContainerGenerator.ContainerFromIndex(0) as ListViewItem;
+                        if (rows != null) rows.Background = (Brush)new BrushConverter().ConvertFrom(App.Current.Resources["PrimaryDarkForegroundBrush"].ToString());
                         Debug.WriteLine("ok");
+                        if (IsAudioFile(path)) AudiaPlayer.Visibility = Visibility.Visible;
+                        else AudiaPlayer.Visibility = Visibility.Collapsed;
                         mePlayer.MediaFailed += (o, args) =>
                         {
                             MessageBox.Show("Media Failed!!");
