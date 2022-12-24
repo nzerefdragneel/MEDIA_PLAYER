@@ -150,7 +150,7 @@ namespace MEDIA_PLAYER
             {
                 string path = media["File_Path"].GetValue<string>();
                 double isNow = media["NowDurationLength"].GetValue<double>();
-             
+                if (!File.Exists(path)) continue;
                 if (IsVideoFile(path))
                 {
                     add_Video_Image(path);
@@ -439,9 +439,9 @@ namespace MEDIA_PLAYER
         private void updatePreList()
         {
             if(_currentPlaying=="") return;
-            if (_prevListFullPathName.Count == 0) return;
+            //if (_prevListFullPathName.Count == 0) return;
             // Loi o day
-            if (string.Compare(_currentPlaying, _prevListFullPathName[_prevListFullPathName.Count-1]) == 0) return;
+            if (_prevListFullPathName.Count >0 && string.Compare(_currentPlaying, _prevListFullPathName[_prevListFullPathName.Count-1]) == 0) return;
               for (var i=0;i<_prevListFullPathName.Count;i++)
             {
                 if (string.Compare(_currentPlaying, _prevListFullPathName[i]) == 0)
@@ -1541,6 +1541,44 @@ namespace MEDIA_PLAYER
                 lblProgressStatus.Text = TimeSpan.FromSeconds(sliProgress.Value).ToString(@"hh\:mm\:ss");
             }
           
+        }
+        private void Screen_nameChanged(string newpath,int index)
+        {
+           
+            _mediaList[index].File_Path = newpath;
+        }
+        private void RenameMovie(object sender, RoutedEventArgs e)
+        {
+            var item = (sender as FrameworkElement).DataContext;
+           
+            int index = PlayListView.Items.IndexOf(item);
+            Debug.WriteLine(index);
+            if (index != -1)
+            {
+                var name = _mediaList[index].File_Path;
+                var screen = new ChangeName(name,index);
+                screen.NameChangedEvent += Screen_nameChanged;
+                if (screen.ShowDialog() == true)
+                {
+                    if (name == _mediaList[index].File_Path) return;
+                    for (int i = 0; i < _prevListFullPathName.Count; i++)
+                    {
+                        if (_prevListFullPathName[i] == name)
+                        {
+                            _prevListFullPathName[i] = _mediaList[index].File_Path;
+                            _prevListName[i+1] = Path.GetFileNameWithoutExtension(_mediaList[index].File_Path);
+                        }
+                    }
+                    File.Move(name, _mediaList[index].File_Path);
+                  
+                }
+                else
+                {
+                    _mediaList[index].File_Path = name;
+                    Debug.WriteLine("back");
+                }
+            }
+
         }
     }
 }

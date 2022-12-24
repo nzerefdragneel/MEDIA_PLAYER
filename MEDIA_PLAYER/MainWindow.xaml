@@ -492,7 +492,7 @@
                                                         <StackPanel>
                                                             <Button Content="Delete" 
                                                                 Click="DeleteMovie"/>
-                                                            <Button Content="Options" />
+                                                            <Button Content="Rename" Click="RenameMovie" />
                                                         </StackPanel>
                                                     </materialDesign:PopupBox>
                                                 </StackPanel>
