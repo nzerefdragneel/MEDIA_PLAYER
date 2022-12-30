@@ -380,17 +380,17 @@
                       IsChecked="True" Click="ChangeAutoPlay" x:Name="AutoPlayToggleBtn"
                         Foreground="{DynamicResource PrimaryDarkBrush}"
                                 Background="{DynamicResource PrimaryMidBrush}"
-                      ToolTip="MaterialDesignSwitchDarkToggleButton" >
+                      ToolTip="MaterialDesignSwitchDarkToggleButton">
 
                     </ToggleButton>
                 </StackPanel>
                 <StackPanel HorizontalAlignment="Left" Orientation="Horizontal" VerticalAlignment="Center" Grid.Row="0"
                           >
                     <TextBlock
-           Foreground="{DynamicResource PrimaryLightForegroundBrush}"
-       
+           Foreground="{DynamicResource PrimaryLightForegroundBrush}" VerticalAlignment="Center"
           Text="Play List " />
-                    <TextBlock x:Name="Nameplaylist"  Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="{DynamicResource PrimaryDarkBrush}"></TextBlock>
+                    
+                    <TextBlock x:Name="Nameplaylist"  Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Foreground="{DynamicResource PrimaryLightForegroundBrush}" ></TextBlock>
 
                 </StackPanel>
 

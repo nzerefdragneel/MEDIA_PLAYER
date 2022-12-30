@@ -76,6 +76,7 @@ namespace MEDIA_PLAYER
       
         private void SaveConfig()
         {
+            string path = JsonConvert.SerializeObject(playlistPath);
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("{");
             stringBuilder.AppendLine($"\"darkmode\":{(isDark == true ? "true" : "false")},");
@@ -84,7 +85,7 @@ namespace MEDIA_PLAYER
             stringBuilder.AppendLine($"\"speedup\":{mePlayer.SpeedRatio.ToString().Replace(',', '.')},");
             stringBuilder.AppendLine($"\"repeat\":{mediaPlayerIsRepeat},");
             stringBuilder.AppendLine($"\"shuffle\":{(mediaPlayerIsShuffling == true ? "true" : "false")},");
-            stringBuilder.AppendLine($"\"pathplaylist\":{(playlistPath.Length>0?playlistPath:"?")},");
+            stringBuilder.AppendLine($"\"pathplaylist\": {path},");
             stringBuilder.AppendLine($"\"left\":{this.Left},");
             stringBuilder.AppendLine($"\"top\":{this.Top},");
             stringBuilder.AppendLine($"\"height\":{this.Height},");
@@ -92,7 +93,8 @@ namespace MEDIA_PLAYER
             stringBuilder.AppendLine($"\"playlist\":");
           
             string json = JsonConvert.SerializeObject(_mediaList);
-            
+           
+
             stringBuilder.AppendLine(json);
             stringBuilder.AppendLine("}");
               Debug.WriteLine(stringBuilder.ToString());
@@ -141,6 +143,9 @@ namespace MEDIA_PLAYER
             ChangeUIShuffle();
             playlistPath = pos["pathplaylist"].GetValue<string>();
             playlistPath.Trim();
+            Nameplaylist.Text =Path.GetFileNameWithoutExtension( playlistPath);
+
+
             if (playlistPath == "?") playlistPath = "";
 
             this.Left = pos["left"].GetValue<double>();
@@ -283,8 +288,8 @@ namespace MEDIA_PLAYER
                     _prevListName.Add(Path.GetFileNameWithoutExtension(path));
                 }
             }
-           
-          
+
+            Nameplaylist.DataContext = playlistPath;
             MidColor.DataContext = RGB;
             input.Close();
 
