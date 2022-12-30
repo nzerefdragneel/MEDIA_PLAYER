@@ -43,5 +43,6 @@
 >> - [x] 5. Có thể ẩn hiện playlist, có hình ảnh xem trước của từng media trong playlist.
 >> - [x] 6. Có lựa chọn cho người dùng khi thay đổi playlist.
 >> - [x] 7. Đổi tên file trong playlist
->> - [x] 8. Handing khi file đang mở hoặc trong playlist bị xóa trên máy
+>> - [x] 8. Handing khi file đang mở hoặc trong playlist bị xóa trên máy hoặc không mở được
 >### **Điểm đề nghị**: **10.0**
+>### **Link demo**: **https://youtu.be/O_2_vIDTMwU**
