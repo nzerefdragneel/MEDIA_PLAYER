@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <None Remove="images\mediaplay.gif" />
+    <None Remove="images\play.png" />
   </ItemGroup>
 
   <ItemGroup>

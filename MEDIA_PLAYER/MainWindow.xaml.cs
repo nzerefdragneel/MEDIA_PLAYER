@@ -84,6 +84,7 @@ namespace MEDIA_PLAYER
             stringBuilder.AppendLine($"\"speedup\":{mePlayer.SpeedRatio.ToString().Replace(',', '.')},");
             stringBuilder.AppendLine($"\"repeat\":{mediaPlayerIsRepeat},");
             stringBuilder.AppendLine($"\"shuffle\":{(mediaPlayerIsShuffling == true ? "true" : "false")},");
+            stringBuilder.AppendLine($"\"pathplaylist\":{(playlistPath.Length>0?playlistPath:"?")},");
             stringBuilder.AppendLine($"\"left\":{this.Left},");
             stringBuilder.AppendLine($"\"top\":{this.Top},");
             stringBuilder.AppendLine($"\"height\":{this.Height},");
@@ -138,6 +139,9 @@ namespace MEDIA_PLAYER
 
             mediaPlayerIsShuffling = pos["shuffle"].GetValue<bool>();
             ChangeUIShuffle();
+            playlistPath = pos["pathplaylist"].GetValue<string>();
+            playlistPath.Trim();
+            if (playlistPath == "?") playlistPath = "";
 
             this.Left = pos["left"].GetValue<double>();
             this.Top =pos["top"].GetValue<double>();
@@ -1085,9 +1089,7 @@ namespace MEDIA_PLAYER
                 }
                 if (index == _currentPlayingIndex)
                 {
-                    //nếu như xóa hết thì chả còn gì, mà xóa còn thì change bằng next
-                    //nếu next éo đc thì prev nếu prev
-                    //éo được thì thằng đầu list
+                   
                     var next = nextPlay(_currentPlayingIndex);
                     if (next != -1)
                     {
@@ -1313,7 +1315,7 @@ namespace MEDIA_PLAYER
             input.Close();
             progressbarLoadmedia.Visibility = Visibility.Collapsed;
             playlistIsChange = false;
-            MessageBox.Show("Doc file xong");
+            MessageBox.Show("Complete!");
         }
 
         private void AutoPlay()

@@ -389,8 +389,8 @@
                     <TextBlock
            Foreground="{DynamicResource PrimaryLightForegroundBrush}"
        
-          Text="Play List" />
-                    <TextBlock x:Name="Nameplaylist" ></TextBlock>
+          Text="Play List " />
+                    <TextBlock x:Name="Nameplaylist"  Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="{DynamicResource PrimaryDarkBrush}"></TextBlock>
 
                 </StackPanel>
 
@@ -548,7 +548,7 @@
                   IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}"
                   Background="Transparent"
                                   Style="{StaticResource MaterialDesignIconButton}"
-                  ToolTip="Add media file">
+                  ToolTip="Add media file ">
                             <materialDesign:PackIcon
                     Kind="PlusThick" 
                           Foreground="{DynamicResource PrimaryLightForegroundBrush}"
@@ -642,7 +642,8 @@
                     </StatusBarItem>
                     <Canvas Name="CanvasSeeking" Visibility="Collapsed">
                         <TextBlock Text="00:00" 
-                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource PrimaryDarkBrush}"
+                                VerticalAlignment="Center"
                                 Style="{StaticResource MaterialDesignCaptionTextBlock}"
                                 
                     Panel.ZIndex="1" Name="textSeeking" Canvas.Left="40" Canvas.Top="-25">
