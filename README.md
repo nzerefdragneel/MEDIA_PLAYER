@@ -16,7 +16,7 @@
 -----
 ## **Thông tin Project**
 >### **Lưu ý cần thực hiện để chạy chương trình**
->> * Mở thư mục **MEDIA_PLAYER.sln** nhấn f5 để chạy chương trình
+>> * Mở thư mục **MEDIA_PLAYER** mở file **MEDIA_PLAYER.sln** nhấn f5 để chạy chương trình
 >### **Các chức năng hoàn thiện**
 >>#### ***Core requirements (7 points)***
 >> - [x] 1. Add all media files you want to play into a playlist
@@ -45,4 +45,4 @@
 >> - [x] 7. Đổi tên file trong playlist
 >> - [x] 8. Handing khi file đang mở hoặc trong playlist bị xóa trên máy hoặc không mở được
 >### **Điểm đề nghị**: **10.0**
->### **Link demo**: **https://youtu.be/O_2_vIDTMwU**
+>### **Link demo**: **https://youtu.be/Q-nQ59VxTDU**
